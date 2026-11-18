@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>หน้าเปิดแดชบอร์ดสถิติการรับประกันชีวิต</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#F4F5F7;color:#111;font-family:'Kanit',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.track{height:400vh;position:relative}
+.sticky{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#FFFFFF 0%,#EEF0F3 55%,#DCE0E6 100%)}
+.brand{position:absolute;left:24px;top:20px;font-size:14px;font-weight:500;z-index:5}
+.brand span{display:block;font-weight:300;color:#555;font-size:13px}
+.skip{position:absolute;right:20px;top:14px;z-index:20;font-size:14px;color:#111;text-decoration:none;border:1px solid #C4CAD3;background:#fff;border-radius:8px;padding:9px 14px;min-height:44px;display:inline-flex;align-items:center}
+.skip:hover{border-color:#111}
+.skip:focus-visible,.doc:focus-visible{outline:2px solid #2F5BD8;outline-offset:3px}
+.fit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.stage{position:relative;width:900px;height:760px;flex:none}
+#back,#front{position:absolute;inset:0;width:900px;height:760px;overflow:visible}
+#back{z-index:0}#docs{position:absolute;inset:0;z-index:1}#front{z-index:2;pointer-events:none}
+.doc{position:absolute;left:0;top:0;width:280px;height:370px;transform-origin:0 0;background:#fff;border-radius:6px;padding:22px;text-decoration:none;color:#111;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 0 #DDE1E7,0 2px 0 #D2D7DE,0 3px 0 #C8CED6,0 18px 30px rgba(17,24,39,.25);pointer-events:none;transition:box-shadow .2s}
+.doc.live{pointer-events:auto;cursor:pointer}
+.doc.live:hover{box-shadow:0 1px 0 #DDE1E7,0 2px 0 #D2D7DE,0 3px 0 #C8CED6,0 24px 40px rgba(17,24,39,.32)}
+.k{font-size:12px;color:#555;letter-spacing:.02em}
+.doc h2{margin:0;font-size:21px;line-height:1.25;font-weight:500}
+.sub{font-size:13px;color:#3B4351}
+.rule{height:1px;background:#E8EBEF;margin:4px 0}
+.spark{width:100%;height:78px;display:block}
+.cap2{font-size:12px;color:#3B4351;line-height:1.5}
+.cta{margin-top:auto;background:#111;color:#fff;border-radius:8px;padding:11px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.sk{height:8px;border-radius:4px;background:#EEF1F4}
+.d2,.d3{padding:20px}
+.d2 h2,.d3 h2{font-size:18px}
+.hint{position:absolute;left:0;right:0;bottom:28px;text-align:center;font-size:15px;color:#3B4351;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;z-index:5}
+.mouse{width:22px;height:34px;border:2px solid #3B4351;border-radius:12px;position:relative;display:block}
+.mouse::after{content:'';position:absolute;left:50%;top:6px;width:3px;height:7px;margin-left:-1.5px;border-radius:2px;background:#3B4351;animation:wheel 1.4s ease-in-out infinite}
+@keyframes wheel{0%{opacity:1;transform:translateY(0)}70%{opacity:0;transform:translateY(10px)}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.mouse::after{animation:none}}
+.wipe{position:fixed;z-index:50;background:#fff;border-radius:6px;box-shadow:0 18px 40px rgba(17,24,39,.3);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:left .7s cubic-bezier(.65,0,.25,1),top .7s cubic-bezier(.65,0,.25,1),width .7s cubic-bezier(.65,0,.25,1),height .7s cubic-bezier(.65,0,.25,1),border-radius .7s}
+.wipe-in{opacity:0;transform:translateY(8px);transition:opacity .35s .55s,transform .35s .55s;text-align:center;font-family:'Kanit',system-ui,sans-serif;color:#111}
+.wipe.show .wipe-in{opacity:1;transform:none}
+.wipe-in p{margin:14px 0 4px;font-size:18px;font-weight:500}
+.wipe-in a{color:#2F5BD8;font-size:14px}
+.wipe-in button{margin-top:18px;min-height:44px;padding:0 16px;border:1px solid #C4CAD3;background:#fff;border-radius:8px;font:inherit;font-size:14px;cursor:pointer}
+.spin{width:30px;height:30px;margin:0 auto;border:3px solid #E1E5EA;border-top-color:#111;border-radius:50%;animation:sp 0.9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.leaving .hint,.leaving .brand,.leaving .skip{opacity:0;transition:opacity .3s}
+.leaving .stage{transition:opacity .5s;opacity:.0}
+
+html.dash-open,html.rewinding{overflow:hidden}
+.dash{position:fixed;inset:0;z-index:60;background:#F4F5F7;overflow-y:auto;overscroll-behavior:contain;opacity:0;transition:opacity .3s;outline:none;color:#111}
+.dash.on{opacity:1}.dash[hidden]{display:none}
+.dh{position:sticky;top:0;z-index:3;background:rgba(244,245,247,.94);backdrop-filter:blur(6px);border-bottom:1px solid #E1E5EA;display:flex;align-items:center;gap:16px;padding:10px 24px}
+.dh .t{font-size:14px;color:#3B4351}
+.back{min-height:44px;padding:0 16px;border:1px solid #C4CAD3;background:#fff;border-radius:8px;font:inherit;font-size:14px;cursor:pointer;color:#111}
+.back:hover{border-color:#111}.back:focus-visible,.pt:focus-visible{outline:2px solid #2F5BD8;outline-offset:3px}
+.dm{max-width:1080px;margin:0 auto;padding:28px 24px 72px}
+.dm h1{margin:0 0 6px;font-size:28px;line-height:1.25;font-weight:500}
+.dm .lead{margin:0 0 24px;color:#3B4351;font-size:15px}
+.sec{margin-top:36px;scroll-margin-top:76px}
+.sec>.k{font-size:12px;color:#555;letter-spacing:.02em}
+.sec>h2{margin:2px 0 14px;font-size:21px;font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:#fff;border:1px solid #E1E5EA;border-radius:10px;padding:18px 20px}
+.kpi .l{font-size:13px;color:#3B4351}.kpi .v{font-size:30px;font-weight:500;line-height:1.2;margin-top:6px}
+.kpi .u{font-size:12px;color:#555;margin-top:2px}
+.card h3{margin:0 0 4px;font-size:16px;font-weight:500}.card .d{font-size:13px;color:#3B4351;margin:0 0 10px}
+.chart{overflow-x:auto}.chart svg{display:block;width:100%;min-width:560px;height:auto}
+.readout{font-size:14px;font-weight:500;min-height:22px;margin:0 0 6px}
+.grid2{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid #E8EBEF;text-align:right;font-variant-numeric:tabular-nums}
+thead th{font-weight:500;color:#3B4351;font-size:13px}th:first-child,td:first-child{text-align:left}
+tbody th{font-weight:400}
+.find{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.find .card h3{font-size:15px;line-height:1.4;margin-bottom:10px}
+.find dl{margin:0;font-size:14px;line-height:1.55}.find dt{font-size:12px;color:#555;margin-top:10px}.find dd{margin:2px 0 0;color:#111}
+.dq{list-style:none;margin:0;padding:0}
+.dq li{display:grid;grid-template-columns:120px 118px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid #E8EBEF;font-size:14px;align-items:start}
+.dq li:last-child{border-bottom:0}.dq b{font-weight:500}
+.bd{display:inline-block;font-size:12px;border-radius:999px;padding:2px 10px;border:1px solid #C4CAD3;white-space:nowrap}
+.bd.ok{background:#EAF5EE;border-color:#9BCBAE;color:#14532D}.bd.warn{background:#FFF4E0;border-color:#E5C27A;color:#7A4B00}
+.note{background:#fff;border:1px dashed #B4BBC6;border-radius:10px;padding:16px 20px;font-size:14px;color:#3B4351;line-height:1.6}
+.src{margin-top:28px;font-size:12px;color:#555}
+@media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}.find{grid-template-columns:1fr}.dq li{grid-template-columns:1fr;gap:4px}}
+@media(max-width:480px){.dm{padding:20px 16px 56px}.dm h1{font-size:24px}.dh{padding:8px 16px}}
+@media(prefers-reduced-motion:reduce){.dash{transition:none}}
+
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;background:#fff;border:1px solid #E1E5EA;border-radius:10px;padding:12px 16px}
+.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#555}
+.filters select{min-height:44px;min-width:130px;border:1px solid #C4CAD3;border-radius:8px;padding:0 12px;font:inherit;font-size:14px;background:#fff;color:#111;cursor:pointer}
+.filters select:hover:not(:disabled){border-color:#111}.filters select:focus-visible{outline:2px solid #2F5BD8;outline-offset:2px}
+.filters select:disabled{background:#F4F5F7;color:#6B7380;cursor:not-allowed}
+.fstat{flex-basis:100%;margin:0;font-size:12px;color:#3B4351}
+@media(max-width:860px){.filters{position:static}.filters select{min-width:0;width:100%}.f{flex:1 1 140px}}
+
+.cbw{position:relative}.cbw input{min-height:44px;width:220px;border:1px solid #C4CAD3;border-radius:8px;padding:0 12px;font:inherit;font-size:14px;background:#fff;color:#111}
+.cbw input::placeholder{color:#6B7380}.cbw input:hover{border-color:#111}.cbw input:focus-visible{outline:2px solid #2F5BD8;outline-offset:2px}
+#prov-list{position:absolute;left:0;top:calc(100% + 4px);min-width:100%;max-height:260px;overflow-y:auto;margin:0;padding:4px;list-style:none;background:#fff;border:1px solid #C4CAD3;border-radius:8px;box-shadow:0 12px 28px rgba(17,24,39,.18);z-index:6}
+#prov-list[hidden]{display:none}
+#prov-list li{padding:10px 12px;font-size:14px;border-radius:6px;cursor:pointer;min-height:40px;display:flex;align-items:center}
+#prov-list li.act,#prov-list li:hover{background:#EEF1F6}#prov-list li[aria-selected=true]{font-weight:500}
+#prov-list li .nm{flex:1;white-space:nowrap}#prov-list li .rg{font-size:12px;color:#555;margin-left:16px;white-space:nowrap}
+#prov-list li[aria-selected=true]::after{content:'\2713';margin-left:8px;color:#2F5BD8}
+#prov-list li.empty{cursor:default;color:#3B4351;background:none}
+@media(max-width:860px){.cbw input{width:100%}}
+
+.plain{margin:6px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:#111}
+.lk{background:none;border:0;padding:6px 0;font:inherit;color:#2F5BD8;text-decoration:underline;cursor:pointer;min-height:32px}
+.lk:focus-visible{outline:2px solid #2F5BD8;outline-offset:2px}
+.lgd{font-size:12px;color:#3B4351;margin:8px 0 0}
+tr.tot th,tr.tot td{font-weight:500;border-top:1px solid #C4CAD3}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.find2{grid-template-columns:repeat(2,1fr)}.find1{grid-template-columns:1fr}
+@media(max-width:860px){.find2{grid-template-columns:1fr}}
+.chart table{min-width:480px}
+#pbody th:nth-child(2),#pbody td:nth-child(3){text-align:left}thead th:nth-child(2):not(#th-v):not(#th-d){}
+#pbody th{text-align:left}
+.chart table thead tr th:nth-child(2),.chart table thead tr th:nth-child(3){}
+.grid2>*,.card,.dm{min-width:0}
+
+.dm{max-width:1280px}
+@media(min-width:1000px){
+.filters{display:grid;grid-template-columns:1.3fr .8fr .8fr 1.2fr 1.4fr auto;gap:12px;align-items:end}
+.filters .f{min-width:0}.filters select,.cbw input{width:100%;min-width:0}.cbw{width:100%}
+.fstat{grid-column:1/-1}}
+
+.rctl{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:4px 0 12px}
+.rctl select{min-height:44px;min-width:200px;border:1px solid #C4CAD3;border-radius:8px;padding:0 12px;font:inherit;font-size:14px;background:#fff;color:#111;cursor:pointer}
+.rctl select:focus-visible,.hm:focus-visible{outline:2px solid #2F5BD8;outline-offset:2px}
+.lgx{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:#3B4351}
+.lgx .bar{display:block;width:160px;height:12px;border-radius:6px;border:1px solid #C4CAD3;background:linear-gradient(90deg,rgb(238,242,251),rgb(23,37,84))}
+.hm{max-height:540px;overflow:auto;border:1px solid #E1E5EA;border-radius:8px;scrollbar-width:auto;scrollbar-color:#8A93A1 #EEF1F4}
+.hm::-webkit-scrollbar{width:14px;height:14px}.hm::-webkit-scrollbar-track{background:#EEF1F4}.hm::-webkit-scrollbar-thumb{background:#8A93A1;border-radius:8px;border:3px solid #EEF1F4}
+.hm table{border-collapse:separate;border-spacing:0;width:100%;min-width:max-content}
+.hm thead th{position:sticky;top:0;background:#fff;z-index:2;border-bottom:1px solid #E1E5EA;padding:10px 8px;text-align:right}
+.hm th.rn{position:sticky;left:0;background:#fff;z-index:1;text-align:left;min-width:190px;white-space:nowrap;border-right:1px solid #E1E5EA;font-weight:400;padding:8px 12px}
+.hm thead th.rn{z-index:3}
+.hm td{min-width:76px;text-align:right;padding:8px;font-size:12px;border-bottom:1px solid #fff;border-right:1px solid #fff;font-variant-numeric:tabular-nums}
+.hm tr.sumrow th.rn{font-weight:500;background:#EEF1F6}
+.hm tr.sel th.rn{box-shadow:inset 4px 0 0 #2F5BD8;font-weight:500;background:#E4ECFD}
+.hm .ind{display:inline-block;width:14px}.hm small{font-size:11px;color:#555;margin-left:6px}
+@media(max-width:700px){.lgx{margin-left:0}.rctl select{min-width:0;width:100%}.rctl .f{flex:1 1 100%}}
+
+.f .lb{font-size:12px;color:#555}
+.seg{display:inline-flex;border:1px solid #C4CAD3;border-radius:8px;overflow:hidden;background:#fff}
+.seg button{min-height:42px;padding:0 16px;border:0;background:#fff;font:inherit;font-size:14px;color:#111;cursor:pointer}
+.seg button+button{border-left:1px solid #E1E5EA}
+.seg button[aria-pressed=true]{background:#2F5BD8;color:#fff}
+.seg button:focus-visible{outline:2px solid #111;outline-offset:-3px}
+.hm.flat td{border-bottom:1px solid #E8EBEF;border-right:0;background:#fff}
+.hm.flat tr.sel td{background:#F1F5FE}.hm.flat tr.sumrow td{background:#F7F8FA;font-weight:500}
+
+.dh .ib{margin-left:auto;display:flex;gap:6px}
+.ibtn{position:relative;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #C4CAD3;background:#fff;border-radius:8px;color:#111;cursor:pointer}
+.ibtn:hover{border-color:#111}.ibtn:focus-visible{outline:2px solid #2F5BD8;outline-offset:2px}
+.ibtn::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);right:0;background:#111;color:#fff;font-size:12px;line-height:1.4;padding:6px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;z-index:20}
+.ibtn:hover::after,.ibtn:focus-visible::after{opacity:1}
+.scrim{position:fixed;inset:0;background:rgba(17,24,39,.35);z-index:10;opacity:0;transition:opacity .2s}
+.scrim.on{opacity:1}
+.drw{position:fixed;top:0;right:0;bottom:0;width:min(760px,100vw);background:#fff;z-index:11;display:flex;flex-direction:column;box-shadow:-12px 0 32px rgba(17,24,39,.2);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.7,.2,1);outline:none}
+.drw.on{transform:none}.scrim[hidden],.drw[hidden]{display:none}
+.drw-h{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #E1E5EA}
+.drw-h h2{margin:0;font-size:18px;font-weight:500;flex:1}
+.drw-b{flex:1;overflow:auto;padding:16px 20px 32px;overscroll-behavior:contain}
+.drw-b:focus-visible{outline:2px solid #2F5BD8;outline-offset:-2px}
+.drw-b h3{font-size:15px;font-weight:500;margin:22px 0 8px}.drw-b h3:first-child{margin-top:0}
+.drw-b table{font-size:13px;min-width:560px}.drw-b th,.drw-b td{text-align:left;vertical-align:top;padding:8px 10px;line-height:1.5}
+.drw-b thead th{background:#F4F5F7;position:sticky;top:-16px;z-index:1}
+.tw{overflow-x:auto;border:1px solid #E1E5EA;border-radius:8px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px;margin:0}.kv dt{color:#555}.kv dd{margin:0;line-height:1.5}
+.drw-b ol{margin:0;padding-left:20px;font-size:14px;line-height:1.7}
+.drw-b .note{margin-top:14px}
+@media(max-width:700px){.dh .t{display:none}.kv{grid-template-columns:1fr}.ibtn::after{right:auto;left:0}}
+@media(prefers-reduced-motion:reduce){.drw,.scrim{transition:none}}
+.dash{overflow-x:hidden}
+.drw-b th[scope=row]{white-space:nowrap;font-weight:500}
+@media(max-width:700px){.dh{gap:8px;padding:8px 12px}.back{padding:0 10px}.dh .ib{gap:4px}}
+
+.ddw{position:relative}.ibtn[aria-expanded=true]::after{display:none}.ibtn[aria-expanded=true]{border-color:#111}
+.menu{position:absolute;top:calc(100% + 8px);right:0;width:300px;background:#fff;border:1px solid #C4CAD3;border-radius:10px;box-shadow:0 12px 28px rgba(17,24,39,.18);padding:6px;z-index:30}
+.menu[hidden]{display:none}
+.menu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;min-height:44px;padding:8px 12px;border:0;background:none;font:inherit;text-align:left;border-radius:6px;cursor:pointer;color:#111}
+.menu button b{font-weight:500;font-size:14px}.menu button span{font-size:12px;color:#555}
+.menu button:hover,.menu button:focus-visible{background:#EEF1F6;outline:none}.menu button:focus-visible{box-shadow:inset 0 0 0 2px #2F5BD8}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;font-size:14px;padding:10px 16px;border-radius:8px;z-index:90;max-width:calc(100vw - 32px)}
+.toast[hidden]{display:none}
+@media(max-width:700px){.menu{right:-56px;width:min(300px,calc(100vw - 24px))}}
+@page{size:A4 landscape;margin:12mm}
+@media print{
+html,body{background:#fff!important;overflow:visible!important}
+body>*:not(#dash){display:none!important}
+.dash{position:static!important;overflow:visible!important;opacity:1!important;background:#fff!important;inset:auto!important}
+.dh,.scrim,.drw,.toast,.menu,.filters .f,.filters .back,.rctl,.lk{display:none!important}
+.filters{border:0;padding:0;margin:0 0 8px;display:block!important}.fstat{display:block;font-size:12px}
+.dm{max-width:none;padding:0}.sec{break-inside:auto}.sec>h2,.sec>.k{break-after:avoid}
+.card{break-inside:avoid;box-shadow:none}.hm{max-height:none!important;overflow:visible!important;border:0}
+.hm table,.chart table{min-width:0!important}.hm thead th,.hm th.rn{position:static!important}
+.chart{overflow:visible!important}.chart svg{min-width:0!important}
+tr{break-inside:avoid}thead{display:table-header-group}
+.kpis{grid-template-columns:repeat(5,1fr)}.find2{grid-template-columns:repeat(2,1fr)}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.hm.flat td{background:#fff!important}
+.sec{margin-top:14px!important}#sec1{margin-top:8px!important}.sec>h2{margin:0 0 8px;font-size:17px}.card{padding:10px 14px}
+th,td{padding:3px 8px;font-size:11.5px}.hm td{padding:3px 6px;font-size:10.5px;min-width:0}.hm thead th{padding:5px 6px}.hm th.rn{padding:3px 10px;min-width:150px;font-size:11px}
+.kpis{gap:8px}.card h3{font-size:13px;margin-bottom:6px}.card .d{margin-bottom:6px}.chart svg{max-height:200px}
+#sec1 .grid2+.card,#sec1>.card{break-inside:auto}
+#sec1 .chart svg{max-height:175px}#regsvg{max-height:190px!important}.card h3{break-after:avoid}#sec1 .card:has(#tbody){break-inside:auto}#sec3 .card{break-inside:avoid}.kpis .card,.kpi{padding:8px 12px}.hm td{padding:2px 6px}.hm th.rn{padding:2px 10px}#sec1 th,#sec1 td{padding:2px 8px}
+#sec5 .card,#sec4 .card{break-inside:auto}
+.grid2{grid-template-columns:1fr 1fr!important;gap:10px!important}.grid2>.card:last-child{grid-column:1/-1}#t-line+.d{display:none}.chart svg{height:auto;max-height:230px}
+}
+
+.ttl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 6px}.ttl h1{margin:0!important}
+.ttl{justify-content:space-between}.ttl .ib{margin-left:auto;display:flex;gap:6px;position:relative}
+.ibtn::after{right:0!important;left:auto!important}
+@media(max-width:700px){.ddw{position:static}.menu{right:0;left:auto}}
+.ttl h1,.dm .lead,.filters label,.ibtn,.back,.seg,.dh .t{-webkit-user-select:none;user-select:none}
+@media print{.ib{display:none!important}}
+::selection{background:#D9DEE6;color:#111}::-moz-selection{background:#D9DEE6;color:#111}
+.hm td::selection{background:#D9DEE6;color:#111}
+.ttl{margin-bottom:16px!important}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #E1E5EA;margin:-4px 0 16px;position:sticky;top:-16px;background:#fff;z-index:3;padding-top:4px}
+.tabs button{min-height:44px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:14px;cursor:pointer;color:#3B4351}
+.tabs button:hover{color:#111}.tabs button[aria-selected=true]{color:#111;font-weight:500;border-bottom-color:#2F5BD8}
+.tabs button:focus-visible{outline:2px solid #2F5BD8;outline-offset:-2px}
+.drw-b thead th{position:static!important}
+.drw-b .d{font-size:13px;color:#3B4351;line-height:1.5}.drw-b h3{font-size:15px;font-weight:500;color:#111}
+
+.pair{display:grid;grid-template-columns:1fr;gap:0 20px;align-items:stretch}
+.pair>.sec{display:flex;flex-direction:column;min-width:0}.pair>.sec>.card{flex:1}
+@media(min-width:1100px){.pair{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+.pair .chart table th,.pair .chart table td{padding:7px 8px;white-space:nowrap}.pair .chart table th{white-space:normal;line-height:1.3}
+.pair #sec3>.card{display:flex;flex-direction:column}.pair #sec3 .chart{flex:1;display:flex;align-items:flex-start}.pair #sec3 .chart svg{width:100%;min-width:0!important;max-width:560px;margin:0 auto}
+@media print{
+.pair{grid-template-columns:5fr 6fr!important;gap:0 12px;break-before:page;break-inside:avoid}.pair>.sec{margin-top:0!important}
+#sec1 .chart svg{max-height:100px}.dm h1{font-size:20px!important;margin:0 0 4px!important}.ttl{margin-bottom:6px!important}#sec1 .k{display:none}#sec1>h2{margin-bottom:4px}.pair td{white-space:nowrap}#sec1 .kpis .card{padding:6px 10px}
+#sec1 th,#sec1 td{padding:1px 8px;font-size:10.5px}
+.hm td{padding:0 6px;font-size:9px;line-height:1.35}.hm th.rn{padding:0 10px;font-size:9.5px;line-height:1.35}
+#regsvg{max-height:120px!important}.board>#sec3{grid-column:1/-1!important;order:1!important}
+}
+
+.board{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}
+.board>.card{min-width:0}
+@media(min-width:1100px){.board{grid-template-columns:repeat(12,minmax(0,1fr))}
+.board>:nth-child(1),.board>:nth-child(2){grid-column:span 6}
+.board>:nth-child(3),.board>:nth-child(5){grid-column:span 6}.board>:nth-child(5){order:4}
+.board>:nth-child(4){grid-column:1/-1;order:5}.board>:nth-child(6){grid-column:1/-1;order:6}
+#sec5 .hm{max-height:600px}#sec5 .hm td{padding:7px 8px;font-size:13px}#sec5 .hm th.rn{min-width:170px}
+#sec4 table{min-width:0}#sec4 th,#sec4 td{padding:7px 8px!important}}
+#sec3{display:flex;flex-direction:column}#sec3 .chart{flex:1;display:flex;align-items:center}#sec3 .chart svg{width:100%;max-width:1100px}
+.board .chart table th,.board .chart table td{padding:7px 6px}#sec4 td{white-space:nowrap}
+@media print{
+.board{grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:8px}
+.board>.card{grid-column:auto!important}
+.board>#sec5{grid-column:1/-1!important;order:2!important}.board>#sec4{grid-column:auto!important;order:0!important}#sec5{break-inside:auto}
+.board .chart table th,.board .chart table td{padding:1px 8px}
+}
+@media print{#sec5 .hm{max-height:none!important}#sec5 .hm td{padding:0 6px!important;font-size:9px!important}#sec5 .hm th.rn{min-width:150px!important;padding:0 10px!important;font-size:9.5px!important}#sec5 .hm thead th{padding:4px 6px!important;font-size:9.5px!important}#sec4 th,#sec4 td{padding:1px 8px!important;font-size:10.5px!important}}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}.chead h3{margin:0}.tseg button{min-height:34px;padding:0 12px;font-size:13px}
+#idxsvg{max-width:720px;margin:0 auto}#idxwrap svg{min-width:0!important}
+.pbh,.pb li{display:grid;grid-template-columns:24px 140px minmax(0,1fr) 66px;align-items:center;gap:8px}
+.pbh{font-size:12px;color:#3B4351;padding:8px 0;border-bottom:1px solid #E1E5EA}.pbh span:nth-child(4),.pb .chg{text-align:right}
+.pb{list-style:none;margin:0;padding:0}.pb li{min-height:44px;border-bottom:1px solid #EEF1F4}
+.pb .rk{font-size:13px;color:#3B4351}.pb .nm{display:flex;flex-direction:column;min-width:0}.pb .nm small{font-size:11.5px;color:#3B4351;line-height:1.2}.pb .lk{font-size:14px;text-align:left;padding:2px 0;min-height:24px;line-height:1.3}
+.pb .tr{display:flex;align-items:center;gap:8px;min-width:0}.pb .tr i{display:block;flex:none;height:16px;border-radius:3px;background:#9DB0E0}.pb .tr b{font-weight:400;font-size:13px;white-space:nowrap}.pb .chg{font-size:13px}
+@media(max-width:520px){.pbh,.pb li{grid-template-columns:20px 104px minmax(0,1fr) 58px;gap:6px}.pb .tr b{font-size:12px}}
+@media print{.tseg{display:none!important}.lk{display:inline!important;text-decoration:none!important;color:#111!important}.pb li{min-height:0;padding:0}.pb .nm small{display:none}.pb .nm{flex-direction:row}.pbh{padding:2px 0}.pb .tr i{height:10px}.pb li{height:21px;overflow:hidden}.pb .lk,.pb .tr b,.pb .chg,.pb .rk{font-size:10.5px!important;line-height:1.2}#d-prov,#d-idx{display:none}.pbh{font-size:10px}#idxsvg{max-height:130px!important}.pb .lk{padding:0}}
+.idxw{position:relative}.tip{position:absolute;z-index:4;pointer-events:none;background:#fff;border:1px solid #C4CAD3;border-radius:8px;box-shadow:0 6px 18px rgba(17,24,39,.16);padding:8px 10px;font-size:12.5px;min-width:170px}
+.tip .tt-h{font-weight:500;margin-bottom:4px;font-size:13px}.tip .tt-r{display:grid;grid-template-columns:10px 1fr auto 52px;gap:6px;align-items:center;line-height:1.55}.tip .tt-r i{width:10px;height:10px;border-radius:2px}.tip .tt-r b{font-weight:500;text-align:right}.tip .tt-r small{font-size:12px;color:#3B4351;text-align:right}.tip .tt-f{margin-top:4px;padding-top:4px;border-top:1px solid #E1E5EA;font-size:11px;color:#3B4351}
+#idxsvg{touch-action:pan-y;cursor:crosshair}#idxsvg:focus-visible{outline:2px solid #2F5BD8;outline-offset:2px}
+@media print{.tip,#idxhv,#idxhit{display:none!important}}
+.gtip{position:fixed;z-index:30;pointer-events:none;background:#fff;border:1px solid #C4CAD3;border-radius:8px;box-shadow:0 6px 18px rgba(17,24,39,.16);padding:8px 10px;font-size:12.5px;line-height:1.55;max-width:260px}.gtip b{font-weight:500;font-size:13px;display:block;margin-bottom:2px}
+@media print{.gtip{display:none!important}}
+.spk{list-style:none;margin:0;padding:0}.spk li,.spkh{display:grid;grid-template-columns:92px minmax(0,1fr) 72px;gap:14px;align-items:center}
+.spk li{min-height:66px;border-bottom:1px solid #EEF1F4}.spk .nm{font-size:14px}.spk .act .nm{font-weight:500;color:#2F5BD8}
+.spk svg{display:block;width:100%;height:auto;min-width:0!important}.spk .yp circle{opacity:0}.spk .yp:hover circle{opacity:1}.spk .yp rect{cursor:crosshair}
+.spk .ix{text-align:right;display:flex;flex-direction:column;line-height:1.25}.spk .ix b{font-size:18px;font-weight:500}.spk .ix small{font-size:12px;color:#3B4351}
+.spkh{font-size:12px;color:#3B4351;padding:4px 0 8px;border-bottom:1px solid #E1E5EA}.spkh .yr{display:flex;justify-content:space-between}.spkh span:last-child{text-align:right}.spk-empty{display:block!important;padding:24px 0;color:#555}
+@media(max-width:520px){.spk li,.spkh{grid-template-columns:70px minmax(0,1fr) 58px;gap:8px}}
+@media print{.spk li{min-height:0;height:31px}.spk svg{height:28px;width:auto;max-width:100%;justify-self:stretch}.spk .ix b{font-size:12px}.spk .ix small{display:none}.spk .ix{flex-direction:row}.spk .nm{font-size:10.5px}.spkh{padding:2px 0}}
+.pb .lk{color:#111!important;text-decoration:none!important;font-size:13px;font-weight:400}.pb .lk:hover{text-decoration:underline!important}
+</style>
+</head>
+<body>
+<div class="track" id="track">
+<div class="sticky">
+<div class="brand">สถิติการรับประกันชีวิตของไทย<span>พ.ศ. 2555–2565 · แหล่งที่มา สำนักงาน คปภ.</span></div>
+<a class="skip" id="skip" href="#dashboard">ข้ามไปแดชบอร์ด →</a>
+<div class="fit"><div class="stage" id="stage">
+<svg id="back" viewBox="0 0 900 760" aria-hidden="true">
+<defs>
+<filter id="lea" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .28 0" result="a"/><feComposite in="a" in2="SourceGraphic" operator="in" result="g"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="g"/></feMerge></filter>
+<filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+<linearGradient id="brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6DFA4"/><stop offset=".5" stop-color="#D1A44F"/><stop offset="1" stop-color="#8F6528"/></linearGradient>
+<pattern id="weave" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#1F2A41"/><rect width="2" height="6" fill="#26324C"/></pattern>
+</defs>
+<g id="bg"></g>
+</svg>
+<div id="docs">
+<a class="doc d2" id="d2" href="#dashboard" aria-label="เปิดแดชบอร์ด ส่วนข้อค้นพบ">
+<div class="k">ข้อค้นพบ</div>
+<h2>ข้อค้นพบและสิ่งที่ควรทำต่อ</h2>
+<div class="rule"></div>
+<div class="cap2">สิ่งที่เห็น · หมายความว่า · ควรทำต่อ พร้อมผู้รับผิดชอบและกรอบเวลา</div>
+<div class="sk" style="width:92%"></div><div class="sk" style="width:78%"></div><div class="sk" style="width:86%"></div><div class="sk" style="width:60%"></div>
+</a>
+<a class="doc d3" id="d3" href="#dashboard" aria-label="เปิดแดชบอร์ด ส่วนคุณภาพข้อมูล">
+<div class="k">ข้อมูลอ้างอิง</div>
+<h2>คุณภาพข้อมูล</h2>
+<div class="rule"></div>
+<div class="cap2">ตรวจ 5 มิติ: ครบถ้วน ถูกต้อง สอดคล้อง ไม่ซ้ำซ้อน และทันสมัย</div>
+<div class="sk" style="width:88%"></div><div class="sk" style="width:70%"></div><div class="sk" style="width:94%"></div><div class="sk" style="width:55%"></div>
+</a>
+<a class="doc d1" id="d1" href="#dashboard" aria-label="เปิดแดชบอร์ดสถิติการรับประกันชีวิต">
+<div class="k">รายงานสถิติ · คปภ.</div>
+<h2>แดชบอร์ดสถิติ<br>การรับประกันชีวิต</h2>
+<div class="sub">พ.ศ. 2555–2565 · 77 จังหวัด · 4 ภาค + กรุงเทพฯ</div>
+<div class="rule"></div>
+<svg class="spark" id="spark" viewBox="0 0 236 78" role="img" aria-label="แนวโน้มเบี้ยประกันภัยรับ พ.ศ. 2555 ถึง 2565"><line x1="0" y1="76" x2="236" y2="76" stroke="#E1E5EA"/><polyline id="sp-line" fill="none" stroke="#111" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle id="sp-dot" r="3.5" fill="#111"/></svg>
+<div class="cap2">เบี้ยประกันภัยรับ 384.8 → 616.0 พันล้านบาท (พ.ศ. 2555 → 2565)</div>
+<div class="cta"><span>เปิดแดชบอร์ด</span><span aria-hidden="true">→</span></div>
+</a>
+</div>
+<svg id="front" viewBox="0 0 900 760" aria-hidden="true"><g id="fg"></g></svg>
+</div></div>
+<div class="hint"><span id="hint-t">เลื่อนเมาส์ลงเพื่อเปิดกระเป๋า</span><span class="mouse" id="mouse" aria-hidden="true"></span></div>
+</div>
+</div>
+
+<div class="dash" id="dash" role="dialog" aria-modal="true" aria-labelledby="dash-title" tabindex="-1" hidden>
+<div class="dh"><button type="button" class="back" id="dash-back">← กลับไปที่กระเป๋า</button><span class="t">สถิติการรับประกันชีวิตของไทย · สำนักงาน คปภ.</span></div>
+<div class="dm">
+<div class="ttl"><h1 id="dash-title">แดชบอร์ดสถิติการรับประกันชีวิต</h1><div class="ib" role="toolbar" aria-label="เครื่องมือข้อมูล"><button type="button" class="ibtn" id="ib-dict" aria-label="ข้อค้นพบ พจนานุกรม และคุณภาพข้อมูล" data-tip="ข้อค้นพบ พจนานุกรม และคุณภาพข้อมูล"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v14H6.5A2.5 2.5 0 0 0 4 19.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H19v-5"/></svg></button><button type="button" class="ibtn" id="ib-log" aria-label="บันทึกการทำความสะอาดข้อมูล" data-tip="บันทึกการทำความสะอาดข้อมูล"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="m9 14 2 2 4-4"/></svg></button><button type="button" class="ibtn" id="ib-rm" aria-label="แถวที่นำออกจากข้อมูลดิบ" data-tip="แถวที่นำออกจากข้อมูลดิบ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button><div class="ddw"><button type="button" class="ibtn" id="ib-dl" aria-haspopup="menu" aria-expanded="false" aria-controls="dlm" aria-label="ดาวน์โหลดข้อมูลที่กรองอยู่ (CSV)" data-tip="ดาวน์โหลดข้อมูลที่กรองอยู่ (CSV)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg></button><div class="menu" id="dlm" role="menu" aria-label="ดาวน์โหลดข้อมูล" hidden>
+<button type="button" role="menuitem" id="x-pdf"><b>PDF</b><span>บันทึกหน้านี้เป็น PDF (ผ่านหน้าต่างพิมพ์)</span></button>
+<button type="button" role="menuitem" id="x-xlsx"><b>Excel (.xlsx)</b><span>ตามตัวกรอง + ข้อมูลทั้งหมด</span></button>
+<button type="button" role="menuitem" id="x-csv"><b>CSV · ตามตัวกรอง</b><span>เฉพาะพื้นที่ ตัวชี้วัด และช่วงปีที่เลือก</span></button>
+<button type="button" role="menuitem" id="x-csva"><b>CSV · ข้อมูลทั้งหมด</b><span>328 แถว ทุกพื้นที่ ทุกตัวชี้วัด</span></button></div></div></div></div>
+
+<form class="filters" id="filters" aria-label="ตัวกรองข้อมูล" onsubmit="return false">
+<div class="f"><label for="f-metric">ตัวชี้วัด</label><select id="f-metric"></select></div>
+<div class="f"><label for="f-from">ตั้งแต่ปี (พ.ศ.)</label><select id="f-from"></select></div>
+<div class="f"><label for="f-to">ถึงปี (พ.ศ.)</label><select id="f-to"></select></div>
+<div class="f"><label for="f-region">ภาค</label><select id="f-region"></select></div>
+<div class="f"><label for="f-prov">จังหวัด</label><div class="cbw"><input id="f-prov" type="text" role="combobox" aria-expanded="false" aria-controls="prov-list" aria-autocomplete="list" autocomplete="off" placeholder="พิมพ์ค้นหาจังหวัด"><ul id="prov-list" role="listbox" aria-label="รายชื่อจังหวัด" hidden></ul></div></div>
+<button type="button" class="back" id="f-reset">ล้างตัวกรอง</button>
+<p class="fstat" id="fstat" aria-live="polite"></p>
+</form>
+
+<section class="sec" id="sec1" style="margin-top:20px">
+<h2>ภาพรวมตามตัวกรอง</h2>
+<div class="kpis">
+<div class="card kpi"><div class="l" id="kl1">–</div><div class="v" id="k1">–</div><div class="u" id="k1s"></div></div>
+<div class="card kpi"><div class="l" id="kl2">–</div><div class="v" id="k2">–</div><div class="u" id="k2s"></div></div>
+<div class="card kpi"><div class="l">อัตราเติบโตเฉลี่ยต่อปี (CAGR)</div><div class="v" id="k3">–</div><div class="u" id="k3s"></div></div>
+<div class="card kpi"><div class="l">ปีที่สูงสุดในช่วงที่เลือก</div><div class="v" id="k4">–</div><div class="u" id="k4s"></div></div>
+<div class="card kpi"><div class="l" id="kl5">สัดส่วนต่อทั้งประเทศ</div><div class="v" id="k5">–</div><div class="u" id="k5s"></div></div>
+</div>
+<div class="board">
+<div class="card"><h3 id="t-line">แนวโน้ม</h3><p class="d">เลื่อนเมาส์หรือกด Tab ที่จุดเพื่อดูค่าแต่ละปี</p>
+<p class="readout" id="readout" aria-live="polite"></p>
+<div class="chart"><svg id="line" viewBox="0 0 720 300" role="group" aria-label="กราฟเส้นแนวโน้มรายปี"></svg></div><p class="lgd" id="lgd" hidden>◆ = จุดที่เปลี่ยนแปลงจากปีก่อนเกิน ±50% (ค่าผิดปกติ ติดธงในไฟล์ข้อมูล คงค่าตามต้นทาง)</p></div>
+<div class="card"><h3 id="t-bars">อัตราเปลี่ยนแปลงจากปีก่อน</h3><p class="d">น้ำเงิน = เพิ่มขึ้น · แดง = ลดลง · ◆ = ค่าผิดปกติ (ระบุเครื่องหมาย + / − กำกับทุกแท่ง)</p>
+<div class="chart"><svg id="bars" viewBox="0 0 720 230" role="img" aria-label="กราฟแท่งอัตราเปลี่ยนแปลงรายปี"></svg></div></div>
+<div class="card" id="sec2"><div class="chead"><h3 id="t-table">ตารางข้อมูล</h3><div class="seg tseg" role="group" aria-label="มุมมอง"><button type="button" id="tv-ch" aria-pressed="true">กราฟ</button><button type="button" id="tv-tb" aria-pressed="false">ตาราง</button></div></div>
+<p class="d" id="d-idx"></p>
+<div class="chart" id="idxwrap"><div class="spkh" aria-hidden="true"><span></span><span class="yr"><i id="yr0"></i><i id="yr1"></i></span><span>ดัชนีปีท้าย</span></div><ol class="spk" id="idxrows" role="list"></ol></div>
+<div class="chart" id="tblwrap" hidden><table><thead><tr><th scope="col">พ.ศ.</th><th scope="col" id="th-v">ค่า</th><th scope="col" id="th-d">เปลี่ยนแปลง</th><th scope="col">เปลี่ยนแปลง (%)</th><th scope="col">หมายเหตุ</th></tr></thead><tbody id="tbody"></tbody></table></div></div>
+
+<div class="card" id="sec3"><h3 id="t-reg">รายภาค</h3><p class="d" id="d-reg"></p>
+<div class="chart"><svg id="regsvg" viewBox="0 0 1000 188" role="img" aria-label="กราฟแท่งเปรียบเทียบรายภาค"></svg></div></div>
+<div class="card" id="sec4"><h3 id="t-prov">10 อันดับแรก</h3><p class="d" id="d-prov"></p>
+<div class="pbh" aria-hidden="true"><span></span><span>จังหวัด</span><span id="th-pv">ค่า</span><span id="th-pc">เปลี่ยนแปลง</span></div><ol class="pb" id="pbars"></ol></div>
+<div class="card" id="sec5"><h3 id="t-ratio">Heatmap เทียบรายพื้นที่</h3><p class="d">เลือกอัตราส่วน แล้วดูเทียบทุกจังหวัดและภาคในช่วงปีตามตัวกรอง เลื่อนตารางขึ้นลงหรือซ้ายขวาเพื่อดูทั้งหมด</p>
+<div class="rctl"><div class="f"><span class="lb" id="r-view-l">มุมมอง</span><div class="seg" role="group" aria-labelledby="r-view-l"><button type="button" id="v-hm" aria-pressed="true">Heatmap</button><button type="button" id="v-tb" aria-pressed="false">ตารางข้อมูล</button></div></div><div class="f"><label for="r-met">อัตราส่วน</label><select id="r-met"></select></div><div class="f"><label for="r-sort">เรียงแถว</label><select id="r-sort"><option value="grp">จัดกลุ่มตามภาค</option><option value="val">ค่าปีสุดท้าย มาก → น้อย</option></select></div>
+<div class="lgx" aria-hidden="true"><span id="lg-lo">–</span><i class="bar"></i><span id="lg-hi">–</span></div></div>
+<div class="hm" id="hm" tabindex="0" role="region" aria-label="ตาราง Heatmap เลื่อนดูได้"><table><thead id="rhead"></thead><tbody id="rbody"></tbody></table></div>
+<p class="d" id="d-ratio" style="margin-top:10px"></p></div>
+</div>
+</section>
+
+
+<p class="src">ข้อมูล: ชีต Cleaned_Data ในไฟล์ Insurance_Data_Cleaning_Simple0.xlsx (แหล่งต้นทางตามที่ไฟล์ระบุ: คปภ. กระทรวงการคลัง) · หน่วยเดิม ราย / พันบาท แปลงเป็นล้านราย / พันล้านบาท เพื่อแสดงผล · อัตราเปลี่ยนแปลง CAGR สัดส่วน และอัตราส่วนคำนวณจากข้อมูลชุดนี้</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drw" id="drw" role="dialog" aria-modal="true" aria-labelledby="drw-t" tabindex="-1" hidden><div class="drw-h"><h2 id="drw-t"></h2><button type="button" class="back" id="drw-x">ปิด</button></div><div class="drw-b" id="drw-b" tabindex="0"></div></aside>
+</div>
+<script>
+(function(){
+var track=document.getElementById('track'),stage=document.getElementById('stage'),bg=document.getElementById('bg'),fg=document.getElementById('fg');
+var hintT=document.getElementById('hint-t'),mouse=document.getElementById('mouse');
+var docs=[document.getElementById('d1'),document.getElementById('d2'),document.getElementById('d3')];
+/* sparkline */
+var pts=[384.8,443.2,498.1,523.8,557.8,605.5,616.0,610.2,599.7,648.8,616.0],sp='';
+var line=document.getElementById('sp-line'),dot=document.getElementById('sp-dot');
+pts.forEach(function(v,i){var x=i*23.6,y=72-(v-380)/(660-380)*64;sp+=x.toFixed(1)+','+y.toFixed(1)+' ';if(i===pts.length-1){dot.setAttribute('cx',x);dot.setAttribute('cy',y);}});
+line.setAttribute('points',sp.trim());
+
+/* ---- simple 3D projection (orthographic) ---- */
+var W=420,D=300,H=110,T=22,IN=10,CX=450,CY=470;
+var yaw,pit,sy,cy,spp,cp,G;
+function setCam(deg,cY,pd){yaw=deg*Math.PI/180;pit=pd*Math.PI/180;sy=Math.sin(yaw);cy=Math.cos(yaw);spp=Math.sin(pit);cp=Math.cos(pit);G=[-sy*cp,-spp,cy*cp];CY=cY;}setCam(-20,470,28);
+var L=norm([-0.45,0.85,-0.35]);            /* light from upper-left-front */
+function norm(v){var l=Math.hypot(v[0],v[1],v[2]);return [v[0]/l,v[1]/l,v[2]/l];}
+function dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function P(p){var x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy;return [CX+x1,CY-(p[1]*cp+z1*spp)];}
+function vis(n){return dot3(n,G)<-1e-6;}
+function hex(c){return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];}
+function shade(c,n){var k=.42+.62*Math.max(0,dot3(n,L));var h=hex(c);return 'rgb('+h.map(function(v){return Math.min(255,Math.round(v*k));}).join(',')+')';}
+function d(ps){return 'M'+ps.map(function(p){var q=P(p);return q[0].toFixed(1)+' '+q[1].toFixed(1);}).join('L')+'Z';}
+function face(ps,n,c,round){var f=shade(c,n);return '<path d="'+d(ps)+'" fill="'+f+'"'+(round?' stroke="'+f+'" stroke-width="'+round+'" stroke-linejoin="round"':'')+'/>';}
+function stitch(ps){return '<path d="'+d(ps)+'" fill="none" stroke="#E2BE8C" stroke-opacity=".75" stroke-width="1.4" stroke-dasharray="5 4"/>';}
+function rect(o,u,v,a0,a1,b0,b1){/* point on plane: o + u*a + v*b */return [[a0,b0],[a1,b0],[a1,b1],[a0,b1]].map(function(t){return [o[0]+u[0]*t[0]+v[0]*t[1],o[1]+u[1]*t[0]+v[1]*t[1],o[2]+u[2]*t[0]+v[2]*t[1]];});}
+/* axis-aligned box, returns visible faces */
+function box(x0,x1,y0,y1,z0,z1,c,tf,round,topExtra){var F=[
+ {n:[0,1,0],p:[[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],top:1},
+ {n:[0,0,-1],p:[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]]},
+ {n:[-1,0,0],p:[[x0,y0,z1],[x0,y0,z0],[x0,y1,z0],[x0,y1,z1]]},
+ {n:[1,0,0],p:[[x1,y0,z0],[x1,y0,z1],[x1,y1,z1],[x1,y1,z0]]}];var s='';
+ F.forEach(function(f){if(vis(f.n)){s+=face(f.p,f.n,c,round);if(f.top&&topExtra)s+=topExtra;}});return s;}
+
+/* lid transform: rotate about hinge (y=H, z=D/2) */
+function lidT(th){var c=Math.cos(th),s=Math.sin(th);return {
+ p:function(q){var dy=q[1]-H,dz=q[2]-D/2;return [q[0],H+dy*c-dz*s,D/2+dy*s+dz*c];},
+ n:function(n){return [n[0],n[1]*c-n[2]*s,n[1]*s+n[2]*c];}};}
+
+var LEATHER='#7A4728',LEATHER2='#6A3C21',LINING='#24304A';
+function drawLid(th){var t=lidT(th),w=W/2,s='',hw=w,z0=-D/2,z1=D/2,y0=H,y1=H+T;
+ var F=[
+  {k:'top',n:[0,1,0],p:[[-w,y1,z0],[w,y1,z0],[w,y1,z1],[-w,y1,z1]]},
+  {k:'in',n:[0,-1,0],p:[[-w,y0,z1],[w,y0,z1],[w,y0,z0],[-w,y0,z0]]},
+  {k:'fr',n:[0,0,-1],p:[[-w,y0,z0],[w,y0,z0],[w,y1,z0],[-w,y1,z0]]},
+  {k:'bk',n:[0,0,1],p:[[w,y0,z1],[-w,y0,z1],[-w,y1,z1],[w,y1,z1]]},
+  {k:'l',n:[-1,0,0],p:[[-w,y0,z1],[-w,y0,z0],[-w,y1,z0],[-w,y1,z1]]},
+  {k:'r',n:[1,0,0],p:[[w,y0,z0],[w,y0,z1],[w,y1,z1],[w,y1,z0]]}];
+ F.forEach(function(f){var n=t.n(f.n);if(!vis(n))return;var P3=f.p.map(t.p);
+  if(f.k==='in'){s+=face(P3,n,'#3E2414',6);
+   s+='<path d="'+d(rect([0,y0-.5,0],[1,0,0],[0,0,1],-w+12,w-12,-D/2+12,D/2-12).map(t.p))+'" fill="url(#weave)"/>';
+   s+='<path d="'+d(rect([0,y0-1,0],[1,0,0],[0,0,1],-w+30,w-30,D/2-110,D/2-26).map(t.p))+'" fill="#2C3957" stroke="#3B4A6D" stroke-width="2"/>';
+   s+='<path d="'+d(rect([0,y0-1.5,0],[1,0,0],[0,0,1],-60,90,D/2-70,D/2-62).map(t.p))+'" fill="url(#brass)"/>';
+   return;}
+  s+='<g filter="url(#lea)">'+face(P3,n,f.k==='top'?LEATHER:LEATHER2,6)+'</g>';
+  if(f.k==='top'){
+   s+=stitch(rect([0,y1,0],[1,0,0],[0,0,1],-w+13,w-13,-D/2+13,D/2-13).map(t.p));
+   s+='<path d="'+d(rect([0,y1,0],[1,0,0],[0,0,1],-w+44,w-44,-D/2+46,D/2-46).map(t.p))+'" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2"/>';
+   [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(cn){var x=cn[0]*(w-16),z=cn[1]*(D/2-16);s+='<path d="'+d(rect([x,y1+.5,z],[1,0,0],[0,0,1],-16,16,-16,16).map(t.p))+'" fill="url(#brass)" stroke="#7A561E" stroke-width="1"/>';});
+   s+='<path d="'+d(rect([0,y1+.5,-10],[1,0,0],[0,0,1],-62,62,-16,16).map(t.p))+'" fill="url(#brass)" stroke="#7A561E" stroke-width="1"/>';
+  }
+  if(f.k==='fr'){[-120,120].forEach(function(x){s+='<path d="'+d(rect([x,0,z0-1],[1,0,0],[0,1,0],-20,20,y0+2,y1-2).map(t.p))+'" fill="url(#brass)" stroke="#7A561E" stroke-width="1"/>';});}
+ });return s;}
+
+
+/* handwriting & text marks on the papers in the case */
+function ln(cx,y,u0,u1,v,th,c){return '<path d="'+d(rect([cx,y,0],[1,0,0],[0,0,1],u0,u1,v-th/2,v+th/2))+'" fill="'+c+'"/>';}
+function wave(cx,y,u0,u1,v,amp,fr,c,w){var a=[],i;for(i=0;i<=28;i++){var t=i/28,q=P([cx+u0+(u1-u0)*t,y,v+amp*Math.sin(t*fr)*(1-.35*t)]);a.push(q[0].toFixed(1)+' '+q[1].toFixed(1));}return '<path d="M'+a.join('L')+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round" stroke-linejoin="round"/>';}
+function sheetMarks(cx,k){var y=12.6,o='',r,G='#B9BFC9',INK='#2A3F7A';
+ o+=ln(cx,y,-46,-6,24,6,'#2B3445')+ln(cx,y,-46,16,14,2.6,'#CDD2DA');
+ if(k===0){var W=[92,80,88,62,86,74,48,84];for(r=0;r<8;r++)o+=ln(cx,y,-46,-46+W[r],2-11*r,3.4,G);
+  o+=wave(cx,y,-30,40,-100,3.2,22,INK,1.8);}
+ if(k===1){o+=ln(cx,y,-46,46,0,3.2,G)+ln(cx,y,-46,30,-11,3.2,G);
+  var Hh=[16,24,32,38,52],i;for(i=0;i<5;i++)o+='<path d="'+d(rect([cx,y,0],[1,0,0],[0,0,1],-40+i*18,-40+i*18+11,-84,-84+Hh[i]))+'" fill="'+(i===4?'#2F5BD8':'#7F93C9')+'"/>';
+  o+=ln(cx,y,-46,46,-85,1.4,'#8A93A1')+ln(cx,y,-46,20,-104,3,G);}
+ if(k===2){for(r=0;r<6;r++){var v=4-14*r;o+=ln(cx,y,-46,-10,v,3.2,G)+ln(cx,y,0,18,v,3.2,G)+ln(cx,y,28,46,v,3.2,r%2?G:'#2F5BD8');o+=ln(cx,y,-46,46,v-7,.9,'#DDE1E7');}
+  o+=wave(cx,y,-36,36,-103,4,26,INK,1.8)+ln(cx,y,-40,40,-110,1,'#8A93A1');}
+ return o;}
+function noteLines(){var y=15.6,o='',r;for(r=0;r<4;r++)o+=wave(140,y,-24,24-r*5,108-r*11-8,1.6,18+r*3,'#6B5B1E',1.5);
+ o+=wave(140,y,-22,10,60,1.2,12,'#B3261E',1.6);return o;}
+function padLines(){var y=13.6,o='',r;for(r=0;r<4;r++)o+=ln(-55,y,-27,-27+(r===3?26:50),84-r*7.5,2.4,'#9AA2AE');return o;}
+function bodyBack(){var w=W/2,iw=w-IN,id=D/2-IN,s='',fy=8;
+ s+='<ellipse cx="'+CX+'" cy="'+(CY+40)+'" rx="300" ry="70" fill="rgba(17,24,39,.35)" filter="url(#blur)"/>';
+ /* interior walls */
+ s+=face([[iw,fy,id],[-iw,fy,id],[-iw,H,id],[iw,H,id]],[0,0,-1],LINING,0);
+ s+='<path d="'+d(rect([0,0,id-.5],[1,0,0],[0,1,0],-iw+20,iw-20,fy+10,H-34))+'" fill="#2E3B59" stroke="#3B4A6D" stroke-width="2"/>';
+ if(vis([1,0,0]))s+=face([[-iw,fy,-id],[-iw,fy,id],[-iw,H,id],[-iw,H,-id]],[1,0,0],LINING,0);
+ if(vis([-1,0,0]))s+=face([[iw,fy,id],[iw,fy,-id],[iw,H,-id],[iw,H,id]],[-1,0,0],LINING,0);
+ s+='<path d="'+d([[-iw,fy,-id],[iw,fy,-id],[iw,fy,id],[-iw,fy,id]])+'" fill="url(#weave)"/>';
+ s+='<path d="'+d([[-iw,fy,-id],[iw,fy,-id],[iw,fy,id],[-iw,fy,id]])+'" fill="rgba(0,0,0,.18)"/>';
+ /* items on the floor */
+ s+=box(-185,-112,fy,fy+12,44,136,'#2B2E35',0,3,
+   '<path d="'+d(rect([0,fy+12.5,0],[1,0,0],[0,0,1],-178,-119,114,128))+'" fill="#A9B997"/>'+
+   (function(){var o='';for(var r=0;r<4;r++)for(var c=0;c<4;c++){o+='<path d="'+d(rect([0,fy+12.5,0],[1,0,0],[0,0,1],-176+c*14,-168+c*14,100-r*15,107-r*15))+'" fill="#D9DCE1"/>';}return o;})());
+ s+=box(100,180,fy,fy+7,52,128,'#F2DE8E',0,2,'<path d="'+d(rect([0,fy+7.5,0],[1,0,0],[0,0,1],112,168,68,112))+'" fill="none" stroke="#9C8A3E" stroke-opacity=".5" stroke-width="1.2" stroke-dasharray="40 6"/>'+noteLines());
+ s+=box(-60,95,fy,fy+7,118,127,'#16171A',0,3,'<path d="'+d(rect([0,fy+7.5,0],[1,0,0],[0,0,1],-40,20,121,123))+'" fill="url(#brass)"/>');
+ s+=box(-90,-20,fy,fy+5,56,100,'#F7F5EE',0,2,'<path d="'+d(rect([0,fy+5.5,0],[1,0,0],[0,0,1],-82,-50,88,92))+'" fill="#3B4351"/>'+padLines());
+ s+=box(10,52,fy,fy+6,62,80,'#4A5363',0,2,'');
+ [-134,0,134].forEach(function(x,k){s+=box(x-59,x+59,fy,fy+4,-118,38,'#F4F5F7',0,1,sheetMarks(x,k));});
+ /* rim ring on top of walls */
+ s+='<g filter="url(#lea)"><path fill-rule="evenodd" d="'+d([[-w,H,-D/2],[w,H,-D/2],[w,H,D/2],[-w,H,D/2]])+d([[-iw,H,-id],[-iw,H,id],[iw,H,id],[iw,H,-id]])+'" fill="'+shade('#5A331B',[0,1,0])+'"/></g>';
+ return s;}
+
+function bodyFront(){var w=W/2,iw=w-IN,id=D/2-IN,s='',z0=-D/2;
+ var g='<g filter="url(#lea)">';
+ g+=face([[-w,0,z0],[w,0,z0],[w,H,z0],[-w,H,z0]],[0,0,-1],LEATHER2,6);
+ if(vis([-1,0,0]))g+=face([[-w,0,D/2],[-w,0,z0],[-w,H,z0],[-w,H,D/2]],[-1,0,0],LEATHER2,6);
+ if(vis([1,0,0]))g+=face([[w,0,z0],[w,0,D/2],[w,H,D/2],[w,H,z0]],[1,0,0],LEATHER2,6);
+ g+='<path d="'+d([[-w,H,z0],[w,H,z0],[iw,H,-id],[-iw,H,-id]])+'" fill="'+shade('#5A331B',[0,1,0])+'"/>';
+ g+='</g>';s+=g;
+ s+=stitch(rect([0,0,z0-.5],[1,0,0],[0,1,0],-w+12,w-12,12,H-12));
+ if(vis([-1,0,0]))s+=stitch(rect([-w-.5,0,0],[0,0,1],[0,1,0],-D/2+12,D/2-12,12,H-12));
+ if(vis([1,0,0]))s+=stitch(rect([w+.5,0,0],[0,0,1],[0,1,0],-D/2+12,D/2-12,12,H-12));
+ /* latches */
+ [-120,120].forEach(function(x){s+='<path d="'+d(rect([x,0,z0-3],[1,0,0],[0,1,0],-22,22,H-30,H-2))+'" fill="url(#brass)" stroke="#7A561E" stroke-width="1"/>';var c=P([x,H-14,z0-4]);s+='<rect x="'+(c[0]-3).toFixed(1)+'" y="'+(c[1]-5).toFixed(1)+'" width="6" height="9" rx="2" fill="#5E4215"/>';});
+ /* handle */
+ var hp=[],hy=H*.5;for(var i=0;i<=24;i++){var a=Math.PI*i/24;hp.push(P([-62*Math.cos(a),hy,z0-6-46*Math.sin(a)]));}
+ var hd='M'+hp.map(function(q){return q[0].toFixed(1)+' '+q[1].toFixed(1);}).join('L');
+ s+='<path d="'+hd+'" fill="none" stroke="#2E190C" stroke-width="17" stroke-linecap="round" transform="translate(0,3)"/>';
+ s+='<path d="'+hd+'" fill="none" stroke="#5A321A" stroke-width="15" stroke-linecap="round"/>';
+ s+='<path d="'+hd+'" fill="none" stroke="#8A5634" stroke-width="3" stroke-linecap="round" transform="translate(0,-4)"/>';
+ [-62,62].forEach(function(x){s+='<path d="'+d(rect([x,0,z0-3],[1,0,0],[0,1,0],-12,12,hy-9,hy+9))+'" fill="url(#brass)" stroke="#7A561E" stroke-width="1"/>';});
+ return s;}
+
+/* document poses: start (inside the case, standing) and end (presented above) */
+var KW=118/280,SL=[0,-134,134],ZC=-40;
+var END=[[.9,324,40],[.78,82,72],[600-0,72]];END[2]=[.78,600,72];
+function Pl(v){return [v[0]*cy+v[2]*sy,-(v[1]*cp+(-v[0]*sy+v[2]*cy)*spp)];}
+function flatM(i,y){var O=P([SL[i]-59,y,ZC+78]),u=Pl([KW,0,0]),v=Pl([0,0,-KW]);return [u[0],u[1],v[0],v[1],O[0],O[1]];}
+function cl(x){return Math.min(1,Math.max(0,x));}
+function ez(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;}
+function lerp(a,b,t){return a+(b-a)*t;}
+function render(t){
+ var open=ez(cl((t-.04)/.28)),th=open*106*Math.PI/180;
+ var turn=ez(cl((t-.32)/.16)),out=cl((t-.5)/.42);
+ setCam(lerp(-20,-10,turn),lerp(470,500,turn)+40*ez(cl(out/.6)),lerp(28,50,turn));
+ var b=bodyBack(),f=bodyFront(),lid=drawLid(th);
+ bg.innerHTML=open>.55?lid+b:b;
+ fg.innerHTML=f+(open>.55?'':lid);
+ var done=true;
+ docs.forEach(function(el,i){
+  var o=cl((out-i*.06)/.8),M0=flatM(i,12),M1=flatM(i,200),e=END[i],M2=[e[0],0,0,e[0],e[1],e[2]],M;
+  var up=ez(cl(o/.4)),st=ez(cl((o-.4)/.6));
+  M=o<.4?M0.map(function(v,k){return lerp(v,M1[k],up);}):M1.map(function(v,k){return lerp(v,M2[k],st);});
+  if(o>=1)M=M2;
+  el.style.transform='matrix('+M.slice(0,4).map(function(v){return v.toFixed(4);}).join(',')+','+Math.round(M[4])+','+Math.round(M[5])+')';
+  el.style.zIndex=i===0?3:2;
+  el.style.visibility=open>.55?'visible':'hidden';
+  el.classList.toggle('live',o>=1);
+  if(o<1)done=false;
+ });
+ hintT.textContent=done?'คลิกเอกสารเพื่อเปิดแดชบอร์ด':'เลื่อนเมาส์ลงเพื่อเปิดกระเป๋า';
+ mouse.style.display=done?'none':'block';
+}
+function fit(){var z=Math.min(1,window.innerWidth/900,(window.innerHeight-40)/760);stage.style.zoom=z;}
+function prog(){var m=track.offsetHeight-window.innerHeight;return m>0?cl(window.scrollY/m):1;}
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,raf=0;
+/* ================= DASHBOARD (in-page) ================= */
+var YRS=[];for(var yi=0;yi<pts.length;yi++)YRS.push(2555+yi);
+function fp(p){return (p>=0?'+':'−')+Math.abs(p).toFixed(1)+'%';}
+function yoy(i){return (pts[i]/pts[i-1]-1)*100;}
+
+/* ================= DASHBOARD DATA (Cleaned_Data) ================= */
+var DATA={"Y":[2555,2556,2557,2558,2559,2560,2561,2562,2563,2564,2565],"R":[["TH",0,[20473865,22500581,24171589,25399054,24572537,28099827,28397263,28787503,40819046,27186271,26926834],0,0],["TH",1,[9187169949,10274216618,11501390276,12461400892,12838654832,32460867651,24354822006,19834898550,28102769600,20963029569,21800000000],32,1],["TH",2,[384772055,443230179,498143168,523775284,557766067,605457182,615968955,610170959,599701699,648821368,616000000],0,1],["TH",3,[148601640,170385265,169435857,193090709,224353187,240910268,271804667,349909595,348370396,457730074,247000000],0,1],["P:กรุงเทพมหานคร",0,[5256715,5756667,6750665,7700957,6782751,9240015,9595142,9903228,15273391,7045093,7031384],768,0],["P:กรุงเทพมหานคร",1,[5193232835,5052225463,6252107768,6885097181,7048789964,25990837798,15759683868,10708216503,14139640367,10583061567,11900000000],32,1],["P:กรุงเทพมหานคร",2,[183469135,209887430,236135204,244265967,266582322,292921897,309222071,307175687,289184588,350415870,262000000],0,1],["P:กรุงเทพมหานคร",3,[63370839,76499807,71313670,85211334,101887006,111760250,157859702,181561553,173008682,287259209,97473924],1536,0],["R:ภาคกลาง",0,[5818321,6345032,6612740,6741842,6837367,7367682,7278656,7461959,10579278,8332445,8292675],0,0],["R:ภาคกลาง",1,[1841974796,2299297722,2339454043,2510092108,2534746292,2972475908,4275812877,4555472771,7153248589,5310502566,5010000000],256,1],["R:ภาคกลาง",2,[95588358,108795478,121443380,134379145,142268126,155482859,152253462,152678773,156252584,153143362,179000000],0,1],["R:ภาคกลาง",3,[40993167,44464919,43331318,49796446,57103068,61260940,54863379,82975420,85530265,88306136,76193173],128,0],["P:สมุทรปราการ",0,[560868,607798,626339,682781,693269,765167,657423,704779,984261,802622,855905],0,0],["P:สมุทรปราการ",1,[240197202,284324120,256023939,290333252,298846928,332105556,475975088,523472985,794434576,614219044,613000000],256,1],["P:สมุทรปราการ",2,[12329548,13300179,13705762,17155883,19011060,21312899,18144421,18349353,17975855,19744493,22240764],0,0],["P:สมุทรปราการ",3,[4864862,5348151,4058325,3850292,4565786,5457235,4682806,6366975,5932730,9683588,10229480],512,0],["P:นนทบุรี",0,[717621,781355,817192,810404,853211,908091,930957,964219,1408892,1105664,1108901],0,0],["P:นนทบุรี",1,[226928293,279413270,342610378,370993625,328138666,479873096,640653251,637204327,989004940,849588026,758000000],256,1],["P:นนทบุรี",2,[14612550,16272465,18686306,21178668,22238994,25404516,25459045,25104673,25969427,25051439,30637910],0,0],["P:นนทบุรี",3,[5903152,6591977,6506701,8246161,9112624,10214499,8032857,14915682,15127762,16481446,12366412],128,0],["P:ปทุมธานี",0,[386848,419451,442083,452817,468173,529399,544705,577511,867891,707114,712964],256,0],["P:ปทุมธานี",1,[151691914,188120468,173858940,187995474,200745533,235789232,344439628,374882685,603076047,502470670,452000000],256,1],["P:ปทุมธานี",2,[7910137,8700918,9800638,10734931,11457953,12916205,13187404,13458357,14093599,12850873,14908341],0,0],["P:ปทุมธานี",3,[2880321,2982731,3131964,3831003,4106370,4775251,5088550,6967757,7482672,7182270,7110950],0,0],["P:พระนครศรีอยุธยา",0,[258174,275380,285030,278464,284416,306935,306190,324019,458962,351690,335787],0,0],["P:พระนครศรีอยุธยา",1,[87033534,100498629,102241882,101188551,105633689,113639613,156545636,177186759,265006015,196804133,176000000],0,1],["P:พระนครศรีอยุธยา",2,[3517421,4016037,4510438,4708968,4865340,5304653,5488078,5392023,5964076,5214976,5930604],0,0],["P:พระนครศรีอยุธยา",3,[1388104,1448111,1550461,1847260,2003104,2244997,2255129,3134305,3455932,3085150,2476619],0,0],["P:อ่างทอง",0,[94874,99030,101287,100537,98434,100620,99281,97742,121831,97732,95058],0,0],["P:อ่างทอง",1,[18960611,31564222,21982524,24073449,29340130,25431657,31392368,34148100,49074716,33997568,31359142],2,0],["P:อ่างทอง",2,[1091632,1305768,1367142,1634659,1527197,1588246,1528049,1408829,1391115,1319190,1521372],0,0],["P:อ่างทอง",3,[604349,603200,589679,655011,798745,790207,671739,935616,1101446,883890,474591],0,0],["P:ลพบุรี",0,[184652,201229,212836,209954,208818,214598,211234,208078,374937,270051,213669],256,0],["P:ลพบุรี",1,[40579019,54070543,57321892,58161593,52018096,65727962,84005470,88409656,162520973,115067274,89496308],256,0],["P:ลพบุรี",2,[2228553,2523653,2861077,3056429,3209742,3343621,3163935,2981127,4912101,3910110,3569863],256,0],["P:ลพบุรี",3,[921756,966850,1234696,1196269,1400839,1444437,1435540,1912099,2915560,2349437,1426678],256,0],["P:สิงห์บุรี",0,[50076,53737,55309,54280,53768,57279,55997,54805,79246,63248,57677],0,0],["P:สิงห์บุรี",1,[13145658,16096353,14723697,14595233,15707304,16910804,20841205,22806489,35659441,24752495,21998300],256,0],["P:สิงห์บุรี",2,[793268,846145,937250,965127,1003281,1061845,1029806,942365,988543,856377,1010334],0,0],["P:สิงห์บุรี",3,[280500,285344,313934,441338,418185,493809,442991,510752,629226,564440,381836],0,0],["P:ชัยนาท",0,[80723,85176,87808,88161,84838,82216,80403,78049,97330,76504,74673],0,0],["P:ชัยนาท",1,[16478365,26281375,23413126,24985228,24093894,25207389,29827876,29993460,52761514,30562885,29107006],258,0],["P:ชัยนาท",2,[893906,1058739,1158603,1155196,1133368,1182498,1128705,1048863,1116017,902585,1097213],0,0],["P:ชัยนาท",3,[426347,440449,506886,633727,638812,599054,594675,657279,786788,641928,453812],0,0],["P:สระบุรี",0,[213235,228321,241874,244689,240186,262307,243160,245693,320693,254433,259085],0,0],["P:สระบุรี",1,[53669424,70395544,77397265,76475191,89169843,94284436,113852222,123734585,203076458,142650131,133000000],256,1],["P:สระบุรี",2,[2798780,3207989,3610924,4082693,4146625,4219785,4011736,3852335,3734185,4116339,4672521],0,0],["P:สระบุรี",3,[1227956,1291196,1336936,1644652,1626194,1758063,1641953,2322346,2116546,2246148,1790100],0,0],["P:ชลบุรี",0,[614603,684417,723391,747561,756281,837877,843192,864274,1237939,1018829,1022441],0,0],["P:ชลบุรี",1,[230758847,304082202,306810635,342180706,334752877,389942919,587986653,630244889,983934505,730729479,682000000],320,1],["P:ชลบุรี",2,[10708676,12788859,14451451,15638354,16399861,17874511,17890258,20114123,18636950,20385058,21936491],0,0],["P:ชลบุรี",3,[4768374,5001957,5187647,5794177,7109002,7420193,6920150,9836261,10633373,11216363,9662872],0,0],["P:ระยอง",0,[319012,346458,363669,373246,376968,418984,425627,435121,596391,478247,486585],0,0],["P:ระยอง",1,[122366313,157107256,160683371,168818774,184022577,209815934,309745543,335063666,499921869,372934849,352000000],0,1],["P:ระยอง",2,[5099699,6137592,6832992,7257997,7501296,8237202,8342182,8664751,8545479,8816144,9950719],0,0],["P:ระยอง",3,[2283368,2520020,2604856,2848235,3286604,3321939,3223948,4681044,4356559,4506098,4426817],0,0],["P:จันทบุรี",0,[225767,247971,261230,273783,281028,300746,303775,306351,444571,312270,310400],0,0],["P:จันทบุรี",1,[60511998,75572535,83125309,89067685,89927580,95682786,172815075,181334195,305451486,186833443,187000000],320,1],["P:จันทบุรี",2,[2901761,3352929,3853807,4055592,4433506,4896288,5027783,5138171,5355332,5004795,6283282],0,0],["P:จันทบุรี",3,[1604806,2087521,1870391,1925776,2286248,2314973,1680391,2725535,3103560,2474400,2671755],128,0],["P:ตราด",0,[91896,103365,105853,106234,106356,113963,112476,113630,161418,113213,110186],0,0],["P:ตราด",1,[22839819,26701765,29686577,29371414,28857446,31801603,49857399,51782531,83725767,53578383,51783106],320,0],["P:ตราด",2,[1111668,1238403,1396802,1387377,1449375,1507992,1466563,1469935,1489311,1406071,1758594],0,0],["P:ตราด",3,[803317,842875,665645,717837,866189,883134,679332,1208399,1104811,981060,908513],128,0],["P:ฉะเชิงเทรา",0,[211215,226127,233535,237269,239104,255462,257971,261114,358475,290102,289776],0,0],["P:ฉะเชิงเทรา",1,[64041597,75089207,80098179,83512063,81459893,89488234,136244085,150617849,237748857,167784900,159000000],320,1],["P:ฉะเชิงเทรา",2,[3120758,3462263,3933387,4196957,4260994,4660151,4898188,4605444,4546632,5009008,5420947],0,0],["P:ฉะเชิงเทรา",3,[1196877,1287320,1416515,1636641,1811218,1791521,1777566,2705048,2751314,2908165,2327622],128,0],["P:ปราจีนบุรี",0,[106732,129024,135243,137659,137091,147118,143093,145750,185311,159287,159279],0,0],["P:ปราจีนบุรี",1,[27437720,34950289,38584729,39680956,40382947,49894508,62245335,66662978,98313016,76583649,76103747],0,0],["P:ปราจีนบุรี",2,[1271089,1541001,1775381,1930232,2072078,2091308,2112070,2052583,2140202,2030072,2426037],0,0],["P:ปราจีนบุรี",3,[470185,630330,577762,738064,822545,843900,696665,1175827,1164536,1127986,951623],128,0],["P:นครนายก",0,[49797,55782,58297,59974,60395,62583,62812,62271,81651,68915,68194],0,0],["P:นครนายก",1,[13256894,15632747,14850582,15569973,17356756,18546423,25696664,26748855,41239058,31115936,28937522],256,0],["P:นครนายก",2,[725770,718573,848755,1036042,997159,994655,956102,925338,941373,993837,1185784],0,0],["P:นครนายก",3,[300197,289678,299672,369461,418006,428724,303127,527719,558542,616046,479603],128,0],["P:สระแก้ว",0,[88644,110404,116689,117885,115968,121078,119331,116147,142340,121931,120877],0,0],["P:สระแก้ว",1,[20073349,25828383,30420574,33288579,28349872,60818786,73429965,78084059,88634389,58531736,61484456],32,0],["P:สระแก้ว",2,[1053868,1353763,1581728,1675585,1703853,1802084,1745413,1727133,1757028,1638557,1956526],0,0],["P:สระแก้ว",3,[430650,522895,570753,659218,783324,740175,529686,945158,922047,1039087,828475],128,0],["P:ราชบุรี",0,[223077,237585,245410,247516,248665,263266,264995,265436,362119,282690,281498],0,0],["P:ราชบุรี",1,[56076655,70058506,68767604,74513665,81792438,87097934,128978942,137280362,226611043,148763252,148000000],256,1],["P:ราชบุรี",2,[3196961,3665405,4018456,4337390,4592532,4949701,4900700,4775305,4729790,4610478,5782318],0,0],["P:ราชบุรี",3,[1633034,1676702,1632105,1993788,2073155,2240280,2039546,2739205,2822878,2620510,2407066],0,0],["P:กาญจนบุรี",0,[156692,169016,174063,173516,176488,183522,184448,183216,253437,201477,199118],0,0],["P:กาญจนบุรี",1,[39063860,49549007,51153954,58498399,57560202,67982225,98759675,101763952,161468630,109064020,110000000],256,1],["P:กาญจนบุรี",2,[2045308,2328585,2583759,2744607,3486764,2955251,2862838,2786208,2770393,2830387,3451831],0,0],["P:กาญจนบุรี",3,[980315,1127654,1054590,1229541,1212277,1218074,1028971,1539308,1511399,1648842,1479419],0,0],["P:สุพรรณบุรี",0,[293163,316329,320674,316633,307568,311415,307089,303598,407496,310290,290802],0,0],["P:สุพรรณบุรี",1,[61217825,72718452,72331761,72671097,75954100,78209502,106080870,113756946,181903709,119718363,112000000],256,1],["P:สุพรรณบุรี",2,[3270009,3633976,4046846,4214233,4218251,4500566,4331199,4354361,4458459,3834450,4665966],0,0],["P:สุพรรณบุรี",3,[1528139,1585420,1576699,1969099,2194488,2234619,1744415,2643844,2610124,2262061,1831161],128,0],["P:นครปฐม",0,[314342,342110,356542,371627,378189,411453,419046,434535,643634,461818,468009],0,0],["P:นครปฐม",1,[104574448,129889568,128391141,136681483,141487979,153271782,252402264,271388287,452793317,292322565,291000000],320,1],["P:นครปฐม",2,[5633076,6712158,7558302,8282542,8715338,9704471,9857333,9657005,10058371,8719944,11867057],0,0],["P:นครปฐม",3,[2621872,2700785,2824049,3365551,3848676,3871525,3748630,5795427,5755606,4952640,4692455],128,0],["P:สมุทรสาคร",0,[209202,226599,212449,223587,231535,259415,266992,276128,426990,338102,347315],256,0],["P:สมุทรสาคร",1,[84138018,101374511,83030455,90977625,95037144,111533310,134121148,143958312,337243457,239530949,241000000],256,1],["P:สมุทรสาคร",2,[4242847,4883754,5423712,5987872,6582414,7255932,7455776,6991598,7087389,6806043,8830056],0,0],["P:สมุทรสาคร",3,[1748163,1810000,1457102,1191036,2461540,2668889,2887121,4011121,3863861,3817958,3921588],16,0],["P:สมุทรสงคราม",0,[60886,70872,99623,98253,101452,103894,103451,101373,133405,97776,82329],0,0],["P:สมุทรสงคราม",1,[14636415,18478853,33799480,33968245,34857344,35065717,98501089,102512997,67039914,43836358,42752270],68,0],["P:สมุทรสงคราม",2,[887559,1072917,1306773,1481972,1555881,1707370,1507953,1472676,1922370,1637497,1651214],0,0],["P:สมุทรสงคราม",3,[418325,502350,499922,605316,631149,715286,477688,878744,1094243,1183255,628402],128,0],["P:เพชรบุรี",0,[170985,181702,186255,185906,185524,190934,180339,185062,225360,182040,179311],0,0],["P:เพชรบุรี",1,[32853191,41750689,41724388,44503317,46255576,50698561,66654581,73726899,109024867,81044660,83311971],0,0],["P:เพชรบุรี",2,[2151530,2427642,2719603,2864072,3042020,3229045,3105224,2939235,3065236,2774457,3093886],0,0],["P:เพชรบุรี",3,[919925,1056918,1025626,1276306,1409382,1510312,1184551,2098301,2069792,1895054,1037564],128,0],["P:ประจวบคีรีขันธ์",0,[135237,145794,150059,149106,149642,159360,154667,153061,204698,166400,162836],0,0],["P:ประจวบคีรีขันธ์",1,[39443827,49749228,46421661,47986531,52997478,53655939,74760845,78706948,123580023,88017798,81043302],256,0],["P:ประจวบคีรีขันธ์",2,[1991984,2245765,2473486,2615767,2663244,2782064,2652701,2466983,2603352,2680184,2902691],0,0],["P:ประจวบคีรีขันธ์",3,[788273,864485,838402,1130687,1218606,1279844,1095350,1741668,1658957,1938314,1227760],128,0],["R:ภาคเหนือ",0,[3116129,3462102,3626340,3672329,3671586,3771267,3770787,3716124,4836513,3786406,3707859],0,0],["R:ภาคเหนือ",1,[627178339,835435782,875452538,932858956,975205023,1035672563,1260955741,1330382711,2005333444,1466231967,1420000000],256,1],["R:ภาคเหนือ",2,[35827387,40724940,46354989,47522647,48432935,51019246,49856156,48590616,49989601,47540253,55151460],0,0],["R:ภาคเหนือ",3,[15690669,16968609,18733266,19561422,22610355,23862451,21100285,29750842,30406485,27053172,22285993],0,0],["P:เชียงใหม่",0,[525610,579706,615547,636701,650788,680073,686311,685149,937978,728106,720747],0,0],["P:เชียงใหม่",1,[120660287,150900211,171908261,191390003,191153175,207412599,265556989,289571472,430861320,327815453,316000000],0,1],["P:เชียงใหม่",2,[7778514,9214474,10685648,10991192,11350658,12188942,12407831,11927641,12454290,11484500,13851194],0,0],["P:เชียงใหม่",3,[3681818,3817350,4008898,4336807,5286201,6050110,6419787,8142908,8036130,6742583,6132787],0,0],["P:ลำพูน",0,[109061,124531,133673,136521,139567,147526,150731,150883,195813,160063,157625],0,0],["P:ลำพูน",1,[23462609,29740577,33684898,36964551,35817126,39910965,50631525,53549423,78557246,59071632,55490777],0,0],["P:ลำพูน",2,[1260236,1493423,1689023,1827002,1878213,2006838,1953289,1920219,1974426,1892056,2237987],0,0],["P:ลำพูน",3,[607291,605857,730226,760677,874669,929360,856696,1080537,960344,1010260,964048],0,0],["P:ลำปาง",0,[229019,252223,258038,258531,267536,270992,267058,266205,331332,260077,245644],0,0],["P:ลำปาง",1,[41139044,51485954,53869585,58233388,56047778,59571951,74649396,79485687,113587467,87490898,82273770],0,0],["P:ลำปาง",2,[2302323,2612128,2885504,2997913,3187564,3323942,3282835,3231279,3317773,3159083,3527202],0,0],["P:ลำปาง",3,[1129535,1170049,1089842,1460235,1488163,1512069,1344977,1993441,2009417,1878353,1300220],0,0],["P:อุตรดิตถ์",0,[100101,113310,119865,122699,120421,123336,123193,121460,154310,118981,115132],0,0],["P:อุตรดิตถ์",1,[17336479,24004937,24774988,28752030,28268707,29820348,33455876,33546328,48244803,37607161,35355442],0,0],["P:อุตรดิตถ์",2,[1105370,1361703,1465937,1547453,1545895,1589849,1476721,1463917,1465250,1390054,1585333],0,0],["P:อุตรดิตถ์",3,[390391,421690,480777,592454,603353,643314,468822,832346,879211,684547,495534],128,0],["P:แพร่",0,[118043,131866,134009,138368,138770,142450,142794,141272,181652,141519,136420],0,0],["P:แพร่",1,[30282497,58919334,42629010,32057436,31847410,36272434,42565871,45327586,68355906,48118150,44627011],258,0],["P:แพร่",2,[1313011,1668829,1819009,1842712,1898111,1914976,1892958,1836026,1863048,1819321,1965799],0,0],["P:แพร่",3,[501595,711501,854123,837803,977453,871310,633226,1045197,1373765,965780,743257],128,0],["P:น่าน",0,[119941,144204,151216,155157,155450,160118,158208,154538,199257,153344,150663],0,0],["P:น่าน",1,[18597055,25068516,27546210,29113533,29648309,33067005,35345657,38240987,49438284,40662022,40703886],0,0],["P:น่าน",2,[1028361,1249379,1417687,1511406,1542518,1637127,1591537,1544759,1533753,1428988,1625279],0,0],["P:น่าน",3,[326821,386424,460981,611529,659371,677329,483906,769995,839406,721352,582182],128,0],["P:พะเยา",0,[164542,190249,204984,206396,206496,208477,208798,208317,269848,211887,202984],0,0],["P:พะเยา",1,[28947020,38159754,40238429,40468141,43272112,44056740,58301008,61673179,89487066,62076813,58418296],0,0],["P:พะเยา",2,[1348130,1630974,1825444,1924256,2046923,2087733,2021969,1934460,1990043,1861084,2105605],0,0],["P:พะเยา",3,[721883,867216,952085,904667,1052820,1065112,782544,1168791,1199648,1124400,861534],0,0],["P:เชียงราย",0,[331491,372565,390078,404174,401412,409176,412297,402745,534141,417695,414108],0,0],["P:เชียงราย",1,[65541788,87451531,90831926,103560171,117136829,98669914,138062647,153677511,228620933,172533295,170000000],0,1],["P:เชียงราย",2,[3541079,4188153,5030242,5264515,5365581,5580174,5447426,5278800,5169066,5537492,5966453],0,0],["P:เชียงราย",3,[1538081,1698068,1922584,2070104,2551401,2622073,2142905,3104573,2975000,3004629,2429665],0,0],["P:แม่ฮ่องสอน",0,[46270,52567,54910,55666,55973,57792,56912,55482,71344,50539,45815],0,0],["P:แม่ฮ่องสอน",1,[7047522,8831029,9816007,11034717,13588597,14188064,13864807,17221066,25724344,16847228,15739990],0,0],["P:แม่ฮ่องสอน",2,[386445,433107,482601,498593,519566,585120,541957,557530,528951,456337,518878],0,0],["P:แม่ฮ่องสอน",3,[148355,168693,162488,192076,229451,219111,150437,249055,229678,246360,193013],128,0],["P:นครสวรรค์",0,[257710,284648,298708,299427,289431,298420,296022,287007,370366,286802,279062],0,0],["P:นครสวรรค์",1,[57093375,74007113,77736216,79551592,106130947,120745449,123568581,126041039,247907629,134105521,140000000],256,1],["P:นครสวรรค์",2,[3359679,3720068,4185409,4218611,4203965,4383397,4280547,4064198,4426870,4046410,4581748],0,0],["P:นครสวรรค์",3,[1552280,1857558,1978860,1695054,2054230,2144221,1935899,2486596,2774605,2218673,1973274],0,0],["P:อุทัยธานี",0,[76254,82714,86077,84057,81064,82172,81055,79030,103258,78807,76589],0,0],["P:อุทัยธานี",1,[14257113,18001366,19105115,26355477,19101369,28784780,34689983,35151909,48543256,36721937,35389060],32,0],["P:อุทัยธานี",2,[743741,836503,933511,948029,1020298,1049174,1017178,985922,990020,911490,1080919],0,0],["P:อุทัยธานี",3,[320489,327277,384831,436166,453147,500281,516153,613031,606965,497623,410569],0,0],["P:กำแพงเพชร",0,[177000,192591,200193,200260,194032,197341,194383,187092,228709,186603,188673],0,0],["P:กำแพงเพชร",1,[33149163,46247657,48794627,54154823,48972295,49762652,63539472,60201866,82738727,66280497,64889810],0,0],["P:กำแพงเพชร",2,[1840148,2075990,2320503,2409580,2257062,2401448,2172429,2074732,2139234,2127623,2733567],0,0],["P:กำแพงเพชร",3,[765111,790927,983201,937183,1054744,1153454,747029,1349189,1419090,1101997,891891],128,0],["P:ตาก",0,[121502,130901,134916,135934,135793,141321,140789,140918,192054,144363,149058],0,0],["P:ตาก",1,[25395740,34440584,33238528,34141730,39362709,42288258,47002174,53606224,85933358,59557915,58979350],256,0],["P:ตาก",2,[1381164,1506024,1627986,1682490,1732738,1940262,1857878,1882146,1959555,1874703,2400410],0,0],["P:ตาก",3,[549468,585927,606146,748366,774073,770691,732153,1051604,1143163,1079008,900924],0,0],["P:สุโขทัย",0,[161045,180433,184027,182002,178375,179986,176258,176391,201743,174795,168633],0,0],["P:สุโขทัย",1,[27703180,33172883,42561821,44388937,46496483,47719347,52796966,55815681,70318476,59826533,59679202],0,0],["P:สุโขทัย",2,[1614588,1740196,2083016,2030801,2004124,2114548,1958397,1968958,1974930,1905384,2114104],0,0],["P:สุโขทัย",3,[696026,809469,807816,900310,955726,979360,683266,1248003,1243824,1204646,703337],128,0],["P:พิษณุโลก",0,[233581,252523,262226,260255,257730,263805,263919,250860,317137,255060,248773],0,0],["P:พิษณุโลก",1,[50627907,67064748,67325411,71245542,72880541,70412803,90413249,75752794,131408011,104192748,100000000],256,1],["P:พิษณุโลก",2,[3586480,3196899,3543797,3534711,3455136,3573105,3301292,3205528,3353822,3162563,3701728],0,0],["P:พิษณุโลก",3,[1218204,1220464,1367954,1346449,1554094,1656068,1417367,1987763,1934072,1805989,1491733],0,0],["P:พิจิตร",0,[150323,161924,166165,161817,163135,160750,159803,158665,212520,162222,158614],0,0],["P:พิจิตร",1,[28842258,36374102,37142098,36713691,41167502,40944041,51250918,60046063,76514398,57029434,53428651],0,0],["P:พิจิตร",2,[1440490,1690368,1786693,1774014,1842725,1897643,1894178,1909965,1987103,1769192,2087336],0,0],["P:พิจิตร",3,[737877,667536,876359,776314,849112,830796,753921,1145817,1195884,1005266,838758],128,0],["P:เพชรบูรณ์",0,[194636,215147,231708,234364,235613,247532,252256,250112,335052,255541,249319],0,0],["P:เพชรบูรณ์",1,[37095302,51565486,54249408,54733194,54313134,72045213,85260621,91473896,129092220,96294728,89374833],0,0],["P:เพชรบูรณ์",2,[1797628,2106722,2572979,2519369,2581858,2744968,2757733,2804538,2861466,2713975,3067917],0,0],["P:เพชรบูรณ์",3,[805444,862603,1066095,955228,1192347,1237792,1031197,1481997,1586282,1761705,1373269],0,0],["R:ภาคตะวันออกเฉียงเหนือ",0,[4423618,4977210,5192680,5305166,5320387,5604450,5656198,5621661,7331999,5765211,5677878],0,0],["R:ภาคตะวันออกเฉียงเหนือ",1,[925434607,1295405802,1308747146,1394054800,1484193052,1606927636,1933964323,2017082947,2933363790,2222597872,2100000000],0,1],["R:ภาคตะวันออกเฉียงเหนือ",2,[41004014,50296674,57509506,60447426,62611053,65999405,65741984,64012460,66085783,60548292,74607735],0,0],["R:ภาคตะวันออกเฉียงเหนือ",3,[15864392,19237434,22086990,23041830,25755799,26784467,22655584,33845291,36685483,33799387,31492851],0,0],["P:นครราชสีมา",0,[584074,655680,677201,678548,674611,699232,691786,684491,944881,699926,682977],0,0],["P:นครราชสีมา",1,[151378725,199935841,186008438,179218869,232596818,213733127,290481177,300297463,470036884,318617041,296000000],256,1],["P:นครราชสีมา",2,[6482244,7900731,8705008,8960859,9033180,9697032,9553735,9025682,9372723,8402648,11511752],0,0],["P:นครราชสีมา",3,[2877351,3042702,3718004,3754716,4150987,4060870,3839751,5156145,5668890,4737633,4560879],0,0],["P:บุรีรัมย์",0,[222742,261255,271222,281984,283787,301351,303133,295953,356445,305952,298034],0,0],["P:บุรีรัมย์",1,[72770339,122464994,85252471,118164287,97572714,116595149,128109726,131285371,170952242,155028865,147000000],2,1],["P:บุรีรัมย์",2,[2285183,2798234,3381647,3450810,3548574,3782560,3801651,3744406,3683358,3702671,4090146],0,0],["P:บุรีรัมย์",3,[830047,961759,1278887,1251733,1430779,1489575,1066959,2088692,2129755,2013276,1641185],128,0],["P:สุรินทร์",0,[181407,208093,219414,226380,226205,236742,240744,238018,293540,247496,241792],0,0],["P:สุรินทร์",1,[34609937,51428422,55188296,54033153,61717984,64518990,81702444,83729763,122261247,95248259,91959078],0,0],["P:สุรินทร์",2,[1811481,2285736,2755245,2936166,3019730,3195177,3072387,2976458,2949891,2831535,3241559],0,0],["P:สุรินทร์",3,[624616,881398,886355,1023734,1042600,1159036,844677,1505531,1659900,1684760,1162072],128,0],["P:ศรีสะเกษ",0,[263287,294651,300268,307273,308736,323414,327660,325000,396802,330054,322440],0,0],["P:ศรีสะเกษ",1,[46629454,59342857,57644849,57941950,72808468,75507959,89305425,88191541,123273075,100614808,95919006],0,0],["P:ศรีสะเกษ",2,[2205260,2496937,2804671,2996429,3044793,3273570,3231095,3114258,3206864,3006438,3460837],0,0],["P:ศรีสะเกษ",3,[777135,891776,969667,1071041,1195707,1283207,955624,1596836,1706688,1575811,1211043],128,0],["P:อุบลราชธานี",0,[364642,410448,421288,436358,437992,465646,477204,478832,616584,519051,513620],0,0],["P:อุบลราชธานี",1,[65025928,90039752,96558371,95789640,112610769,124344024,149975196,158234836,224088808,179398809,170000000],0,1],["P:อุบลราชธานี",2,[3468284,4213691,5017617,5488367,5502977,5968513,5879381,5574477,5605760,5296124,6408946],0,0],["P:อุบลราชธานี",3,[1245677,1575756,1635488,1738046,2031839,2219441,1776164,2655797,2973036,2944363,2447938],0,0],["P:ยโสธร",0,[122829,135305,135961,136427,135310,139696,136987,133090,165712,115604,111280],0,0],["P:ยโสธร",1,[18617556,26706479,28535274,27515262,32284037,34624316,38241608,38910057,53599926,40239361,37756644],0,0],["P:ยโสธร",2,[1029801,1187215,1388204,1440139,1601489,1501456,1452622,1364785,1437183,1266406,1396350],0,0],["P:ยโสธร",3,[451789,458486,482829,577958,591982,614618,450918,830860,962257,674115,517199],128,0],["P:ชัยภูมิ",0,[227081,264509,276391,279527,277641,292702,293696,294078,366482,296079,289519],0,0],["P:ชัยภูมิ",1,[41968762,55781309,60931097,67357860,65440975,72264067,85803005,92124275,130794475,96500408,87941590],0,0],["P:ชัยภูมิ",2,[1911912,2399082,2736875,2945899,2891113,3125099,2890036,2877100,2903488,2700447,3103477],0,0],["P:ชัยภูมิ",3,[698851,906272,1038747,1117364,1231370,1244725,889134,1385838,1618806,1610075,1187788],128,0],["P:อำนาจเจริญ",0,[62065,71534,73692,72817,72724,76217,76925,74500,87660,79042,79311],0,0],["P:อำนาจเจริญ",1,[10999374,20913268,21941090,24195885,23902314,25356609,29061215,29023377,39184994,26463763,29901158],2,0],["P:อำนาจเจริญ",2,[562696,741403,863379,879376,863296,932417,920741,856628,915997,825668,983255],0,0],["P:อำนาจเจริญ",3,[218217,341631,287009,314953,349438,374385,282748,450039,440446,463133,386558],130,0],["P:บึงกาฬ",0,[23906,58256,64111,66162,69563,78133,81436,84358,109531,84090,82402],2,0],["P:บึงกาฬ",1,[5366481,14203089,16499270,19397531,19939023,23002261,27794240,30946612,44102578,32999108,29735130],2,0],["P:บึงกาฬ",2,[229621,559232,661583,699297,691630,799704,826427,853675,827448,765805,894946],2,0],["P:บึงกาฬ",3,[21250,117115,179477,228522,288558,256177,197890,334624,339479,305398,339863],134,0],["P:หนองบัวลำภู",0,[139866,153519,162748,165636,166584,176268,180673,179505,229082,186081,180435],0,0],["P:หนองบัวลำภู",1,[22987689,30294206,32765123,33197563,36057438,41101227,49066389,51280114,71195951,55172597,55919471],0,0],["P:หนองบัวลำภู",2,[863865,1004882,1104529,1176591,1194690,1330861,1350793,1396443,1566934,1387693,1602235],0,0],["P:หนองบัวลำภู",3,[294380,417373,450432,524898,477297,481879,399226,574689,695065,655208,595227],0,0],["P:ขอนแก่น",0,[452892,510561,532506,546139,540546,580154,585687,582202,814696,609816,611639],0,0],["P:ขอนแก่น",1,[118688427,160694022,167818444,185466021,173646348,189660571,232921615,243459253,365737711,268641232,255000000],256,1],["P:ขอนแก่น",2,[4923492,5895522,6720181,7089143,7057955,7721315,7660148,7464319,8160667,7287122,9664785],0,0],["P:ขอนแก่น",3,[2136147,2473627,2777460,2838592,3203827,3220564,2835492,4186046,4565958,4201444,4305089],0,0],["P:อุดรธานี",0,[360586,392934,412477,414336,424350,447210,472967,480432,613097,493439,493072],0,0],["P:อุดรธานี",1,[70571380,96961970,108247016,107859698,120656409,131864719,166369233,175257418,248411110,187806853,178000000],0,1],["P:อุดรธานี",2,[3256700,4129344,4611913,4744220,5071350,5450220,5868567,5711680,5728403,5341361,6510442],0,0],["P:อุดรธานี",3,[1243202,1515066,1712259,1769274,2108651,2140617,1980898,2845263,3079998,2912228,2878432],0,0],["P:เลย",0,[130847,146712,155505,159078,158902,163729,168612,170378,244004,185497,176846],0,0],["P:เลย",1,[29052034,39829683,43678735,46590986,47386528,52961986,64949745,75033853,106345130,80532847,79093797],0,0],["P:เลย",2,[1116027,1421253,1585000,1674262,1637689,1774007,1885181,1955017,2086276,1887979,2280109],0,0],["P:เลย",3,[382695,405872,507015,557108,691473,723564,584267,846804,970219,818780,1245465],1024,0],["P:หนองคาย",0,[169810,159491,165223,168595,170125,179244,160145,157700,204282,160320,158918],0,0],["P:หนองคาย",1,[33480426,40569023,40646312,40761348,51206402,53407623,59621790,59388712,78282005,62015921,68451936],0,0],["P:หนองคาย",2,[1630313,1707998,1868641,1927245,2026890,2145830,1977151,1949614,1961038,1822134,2119839],0,0],["P:หนองคาย",3,[584702,648374,590682,753835,781262,937973,749420,1092723,1028202,1034630,963505],0,0],["P:มหาสารคาม",0,[242070,270735,293586,307078,309389,324815,328420,326593,413784,321599,320430],0,0],["P:มหาสารคาม",1,[38808761,59382958,66709725,71861447,72119870,80234771,93368624,96191120,134626195,100850190,98611159],2,0],["P:มหาสารคาม",2,[1976322,2607362,3008842,3037878,3122305,3425138,3476863,3441975,3493117,3087596,3834358],0,0],["P:มหาสารคาม",3,[829473,1023045,1365352,1328333,1494235,1584259,1431943,2095410,2071256,2016353,1992508],0,0],["P:ร้อยเอ็ด",0,[284806,324503,348552,366679,374936,390344,395491,390496,489021,391588,383952],0,0],["P:ร้อยเอ็ด",1,[50103441,73233198,80078464,87863890,92931303,100477915,115759771,118610180,197017932,148965071,121000000],256,1],["P:ร้อยเอ็ด",2,[2420749,3104376,3627952,3951736,4011007,4389295,4341198,4327368,4522381,3931759,4935904],0,0],["P:ร้อยเอ็ด",3,[945049,1264598,1549415,1513148,1646454,1820708,1618492,2276248,2416257,2285934,2319683],0,0],["P:กาฬสินธุ์",0,[201566,216916,229096,235713,237696,254056,256112,253192,366510,258934,257083],0,0],["P:กาฬสินธุ์",1,[38619032,52215369,59946270,72650927,57362226,82548050,88275735,87735831,124415110,92413797,88608471],0,0],["P:กาฬสินธุ์",2,[1582714,1870611,2186328,2337136,3558383,2522231,2581536,2510606,2628920,2279516,2912295],16,0],["P:กาฬสินธุ์",3,[477312,770580,1057652,897528,1106728,1106490,1007524,1474527,1554651,1306668,1515244],2,0],["P:สกลนคร",0,[193370,218954,225421,225971,224431,237105,238152,234749,301719,235147,233182],0,0],["P:สกลนคร",1,[36146615,48096436,47572446,47102932,53460196,58925516,67757882,71957074,109505406,81384125,69125455],256,0],["P:สกลนคร",2,[1577354,1958505,2222881,2308119,2325653,2448971,2429539,2393689,2453637,2283819,2726125],0,0],["P:สกลนคร",3,[633262,807242,802760,858467,911844,998746,799050,1189308,1384483,1225845,1061385],0,0],["P:นครพนม",0,[125185,146964,150874,152349,150020,157106,157884,155984,201022,158707,157546],0,0],["P:นครพนม",1,[23889965,30723658,30423810,32154566,35009881,38262749,45273471,53870746,73981496,62912770,63577330],0,0],["P:นครพนม",2,[1036759,1225083,1405961,1478830,1509586,1559969,1565305,1558236,1558992,1501641,1748500],0,0],["P:นครพนม",3,[404108,476028,508895,585965,650759,664955,553123,809058,880712,795968,675687],0,0],["P:มุกดาหาร",0,[70587,76190,77144,78116,76839,81286,82483,82111,117145,86789,83400],0,0],["P:มุกดาหาร",1,[15720281,22589268,22301645,24930985,25483349,27536007,30126031,31555352,45551514,36792049,35121577],0,0],["P:มุกดาหาร",2,[633237,789477,853049,924924,898763,956040,977630,916045,1022706,939929,1181875],0,0],["P:มุกดาหาร",3,[189129,258734,288605,336615,370009,402678,392282,450851,539425,537766,486101],0,0],["R:ภาคใต้",0,[1859082,1959570,1989164,1978760,1960446,2116413,2096480,2084532,2797866,2257116,2217038],0,0],["R:ภาคใต้",1,[599349372,791851849,725628781,739297847,795720501,854953746,1124405197,1223743618,1871183410,1380635598,1330000000],256,1],["R:ภาคใต้",2,[28883161,33525657,36700089,37160099,37871631,40033775,38895282,37713423,38189145,37173591,45368764],0,0],["R:ภาคใต้",3,[12682573,13214496,13970613,15479677,16996959,17242160,15325718,21776489,22739482,21312170,19461462],0,0],["P:นครศรีธรรมราช",0,[257122,269388,257615,255641,249527,265988,261100,263099,349253,301563,298033],0,0],["P:นครศรีธรรมราช",1,[63802625,86755153,85993705,97208578,93917395,97037422,120763726,132572484,222338145,169182518,164000000],256,1],["P:นครศรีธรรมราช",2,[3757031,4391347,4702799,4757017,4760929,4975657,4734099,4577861,5038241,4929752,5801943],0,0],["P:นครศรีธรรมราช",3,[1474175,1610436,1786909,1921075,2172749,2033725,1921483,2554332,2848602,2603222,2242446],0,0],["P:กระบี่",0,[80237,83070,83977,83489,83048,90883,91157,90518,121363,99023,98323],0,0],["P:กระบี่",1,[27546656,39522695,36829526,40826755,38598042,41550515,51626448,56655747,85644499,63033909,60709087],256,0],["P:กระบี่",2,[1267739,1473717,1610771,1584488,1553168,1632015,1605157,1513542,1542516,1401993,1844504],0,0],["P:กระบี่",3,[502068,570394,570515,709619,784318,739262,695620,903380,961682,876489,948943],0,0],["P:พังงา",0,[59282,63887,64954,65420,66027,71707,70890,70409,86941,72837,71790],0,0],["P:พังงา",1,[18708596,34816876,29476366,24696274,31979308,29592991,37590981,40788130,63150831,43770626,36648017],258,0],["P:พังงา",2,[911000,1186176,1242971,1195789,1270765,1333034,1266785,1201037,1199097,1189510,1303272],0,0],["P:พังงา",3,[386000,442715,449659,537492,580246,531064,379326,753642,789835,732152,509430],128,0],["P:ภูเก็ต",0,[169840,183861,192626,198284,202491,223569,227248,231308,322870,255414,246921],0,0],["P:ภูเก็ต",1,[74336025,94694216,91439248,89521881,95267680,105909971,162797643,177110502,275207939,200214733,184000000],320,1],["P:ภูเก็ต",2,[2814128,3386969,3673818,3838263,4157452,4466285,4779223,4683218,4722108,4965758,6051079],0,0],["P:ภูเก็ต",3,[1486884,1431234,1504767,1485852,1847188,1901273,1923752,2583017,2869292,3063921,2892630],0,0],["P:สุราษฎร์ธานี",0,[252144,262633,278170,273901,269228,296637,290886,288369,360480,306101,311977],0,0],["P:สุราษฎร์ธานี",1,[110238262,144058223,121498918,129796859,148923701,169392824,184947833,206037634,277095930,226459053,230000000],0,1],["P:สุราษฎร์ธานี",2,[4090406,4735552,5210679,5318591,5225343,5608531,5327411,5101404,4736871,5074665,6445631],0,0],["P:สุราษฎร์ธานี",3,[1503425,1549910,1931646,2159157,2439513,2449003,2189473,2803590,2747693,3058975,3046429],0,0],["P:ระนอง",0,[39985,42210,42985,41904,41408,48962,48082,46603,58934,50075,48933],0,0],["P:ระนอง",1,[14481359,17113611,17358152,16768879,16965821,18246958,24442314,26412701,38954448,28264636,26295770],0,0],["P:ระนอง",2,[734737,831266,928344,924048,1062457,941897,898340,880163,840775,909699,1051547],0,0],["P:ระนอง",3,[303966,347967,299822,330294,397760,443529,368548,525157,586983,607167,401906],0,0],["P:ชุมพร",0,[129714,139594,141863,138693,136826,150221,148283,146466,191114,159326,159005],0,0],["P:ชุมพร",1,[32564486,41912095,41855260,42251895,41912430,45705824,63267710,68789002,107560725,80811266,74323892],256,0],["P:ชุมพร",2,[1761010,2083801,2362045,2358624,2569862,2560423,2424260,2431236,2420811,2640803,3212594],0,0],["P:ชุมพร",3,[849809,920818,930580,1065604,1104934,1131586,880918,1453445,1478401,1417367,1313620],128,0],["P:สงขลา",0,[413597,439323,451864,451966,453300,466877,464467,464421,664246,495386,483914],0,0],["P:สงขลา",1,[131260796,167519156,156454872,152294541,175707991,178729286,256830523,273904162,433455382,292009834,292000000],256,1],["P:สงขลา",2,[6920618,7888643,8822102,8906092,9090139,9736183,9443351,9134310,9346482,8199076,10463105],0,0],["P:สงขลา",3,[3129499,3105980,3252946,3492081,3948458,4276082,3836509,5673735,5526605,4534484,4503322],0,0],["P:สตูล",0,[39112,40222,40176,39257,38433,43223,42943,40979,66576,50591,40582],256,0],["P:สตูล",1,[8792714,11980676,11393574,10432199,13176148,14450612,18038748,18380822,30444807,22881593,19396443],256,0],["P:สตูล",2,[526003,606901,660318,629277,593594,658219,647791,593309,748348,647991,696935],0,0],["P:สตูล",3,[223791,203524,223843,276449,298478,279285,228905,339017,435435,465518,294061],0,0],["P:ตรัง",0,[140519,143644,142639,139434,135576,143109,142501,140682,200045,151099,148783],0,0],["P:ตรัง",1,[37975606,48043888,42721148,41163346,44678104,46553640,63846215,66921886,105138231,73871124,76066679],256,0],["P:ตรัง",2,[2012316,2251212,2412173,2334397,2268001,2443924,2363652,2290801,2265244,2290429,2769629],0,0],["P:ตรัง",3,[1216199,1180027,1095810,1028898,1132134,1172881,998792,1433217,1501885,1364794,1233318],0,0],["P:พัทลุง",0,[91258,96310,97245,95713,92620,99807,99823,97239,124541,105125,103503],0,0],["P:พัทลุง",1,[24703919,32076597,29707964,29665871,29245998,34870429,42402501,39768410,61897218,50352789,48311066],256,0],["P:พัทลุง",2,[1229152,1387785,1470090,1481461,1405575,1526633,1506095,1446685,1510266,1466641,1776280],0,0],["P:พัทลุง",3,[430934,522235,522826,719176,622326,649189,579114,759338,837522,710773,632755],0,0],["P:ปัตตานี",0,[70346,73144,71379,70239,68930,74627,72631,71060,89332,72704,71088],0,0],["P:ปัตตานี",1,[20126238,28340296,24545460,25711316,23383844,24947571,36820716,48221942,69669772,51000905,47611888],0,0],["P:ปัตตานี",2,[924469,1033553,1120149,1197762,1192954,1311055,1236974,1251230,1206887,1128498,1317323],0,0],["P:ปัตตานี",3,[437731,442812,442562,502873,496389,510683,462662,634973,733848,560688,556643],0,0],["P:ยะลา",0,[66053,70399,71201,72006,69836,77030,74381,73415,92962,75445,73456],0,0],["P:ยะลา",1,[17987701,23478932,20758192,21173165,23499466,25356841,33994483,36966412,54825480,39712226,40508461],0,0],["P:ยะลา",2,[1086901,1228055,1407206,1486806,1526243,1598839,1450774,1435102,1373498,1227610,1432726],0,0],["P:ยะลา",3,[443860,553822,609299,735942,739186,661279,442586,744372,758642,728213,525168],128,0],["P:นราธิวาส",0,[49873,51885,52470,52813,53196,63773,62087,59966,69209,62426,60730],0,0],["P:นราธิวาส",1,[16824389,21539435,15596396,17786288,18464573,22608862,27035355,31213785,45800002,39070386,30594271],0,0],["P:นราธิวาส",2,[847651,1040680,1076624,1147484,1195149,1241080,1211368,1173523,1238000,1101166,1202196],0,0],["P:นราธิวาส",3,[294232,332622,349429,515165,433280,463319,418031,615276,663058,588407,360791],0,0]],"P":[["กรุงเทพมหานคร","bkk"],["สมุทรปราการ","central"],["นนทบุรี","central"],["ปทุมธานี","central"],["พระนครศรีอยุธยา","central"],["อ่างทอง","central"],["ลพบุรี","central"],["สิงห์บุรี","central"],["ชัยนาท","central"],["สระบุรี","central"],["ชลบุรี","central"],["ระยอง","central"],["จันทบุรี","central"],["ตราด","central"],["ฉะเชิงเทรา","central"],["ปราจีนบุรี","central"],["นครนายก","central"],["สระแก้ว","central"],["ราชบุรี","central"],["กาญจนบุรี","central"],["สุพรรณบุรี","central"],["นครปฐม","central"],["สมุทรสาคร","central"],["สมุทรสงคราม","central"],["เพชรบุรี","central"],["ประจวบคีรีขันธ์","central"],["เชียงใหม่","north"],["ลำพูน","north"],["ลำปาง","north"],["อุตรดิตถ์","north"],["แพร่","north"],["น่าน","north"],["พะเยา","north"],["เชียงราย","north"],["แม่ฮ่องสอน","north"],["นครสวรรค์","north"],["อุทัยธานี","north"],["กำแพงเพชร","north"],["ตาก","north"],["สุโขทัย","north"],["พิษณุโลก","north"],["พิจิตร","north"],["เพชรบูรณ์","north"],["นครราชสีมา","northeast"],["บุรีรัมย์","northeast"],["สุรินทร์","northeast"],["ศรีสะเกษ","northeast"],["อุบลราชธานี","northeast"],["ยโสธร","northeast"],["ชัยภูมิ","northeast"],["อำนาจเจริญ","northeast"],["บึงกาฬ","northeast"],["หนองบัวลำภู","northeast"],["ขอนแก่น","northeast"],["อุดรธานี","northeast"],["เลย","northeast"],["หนองคาย","northeast"],["มหาสารคาม","northeast"],["ร้อยเอ็ด","northeast"],["กาฬสินธุ์","northeast"],["สกลนคร","northeast"],["นครพนม","northeast"],["มุกดาหาร","northeast"],["นครศรีธรรมราช","south"],["กระบี่","south"],["พังงา","south"],["ภูเก็ต","south"],["สุราษฎร์ธานี","south"],["ระนอง","south"],["ชุมพร","south"],["สงขลา","south"],["สตูล","south"],["ตรัง","south"],["พัทลุง","south"],["ปัตตานี","south"],["ยะลา","south"],["นราธิวาส","south"]]},DQ={"dims":[["Completeness (ความครบถ้วน)",0.855421686746988,1,"ดีมาก"],["Accuracy (ความถูกต้อง)",0.946666666666667,0.962520325203252,"ดีมาก"],["Consistency (ความสอดคล้อง)",0.125,1,"ดีมาก"],["Uniqueness (ความไม่ซ้ำซ้อน)",0.493975903614458,1,"ดีมาก"],["Timeliness (ความทันสมัย)",0.5,0.5,"ต้องปรับปรุง"]],"total":[0.584212851405623,0.892504065040651,"ดี"]};
+var YRS=DATA.Y,NY=YRS.length;
+var MET=[{n:'จำนวนกรมธรรม์ที่มีผลบังคับเมื่อสิ้นปี',s:'จำนวนกรมธรรม์'},{n:'จำนวนเงินเอาประกันที่มีผลบังคับเมื่อสิ้นปี',s:'ทุนประกัน'},{n:'เบี้ยประกันภัยรับทั้งสิ้น',s:'เบี้ยประกันภัยรับ'},{n:'เงินที่จ่ายตามกรมธรรม์',s:'เงินจ่ายตามกรมธรรม์'}];
+var REGIONS=[['bkk','กรุงเทพมหานคร','P:กรุงเทพมหานคร'],['central','ภาคกลาง','R:ภาคกลาง'],['north','ภาคเหนือ','R:ภาคเหนือ'],['northeast','ภาคตะวันออกเฉียงเหนือ','R:ภาคตะวันออกเฉียงเหนือ'],['south','ภาคใต้','R:ภาคใต้']];
+var RG_SHORT={bkk:'กรุงเทพฯ',central:'ภาคกลาง',north:'ภาคเหนือ',northeast:'ภาคอีสาน',south:'ภาคใต้'};
+var AREA={},PROV_REGION={},PROVS=[];
+DATA.R.forEach(function(r){(AREA[r[0]]=AREA[r[0]]||[])[r[1]]={v:r[2],o:r[3],rd:r[4]};});
+DATA.P.forEach(function(p){PROVS.push(p[0]);PROV_REGION[p[0]]=p[1];});
+PROVS.sort(function(x,y){return x.localeCompare(y,'th');});
+var S={a:0,b:NY-1,m:2,region:'all',prov:''};
+function regInfo(k){return REGIONS.filter(function(r){return r[0]===k;})[0];}
+function areaKey(){return S.prov?'P:'+S.prov:(S.region!=='all'?regInfo(S.region)[2]:'TH');}
+function areaName(){return S.prov?S.prov:(S.region!=='all'?regInfo(S.region)[1]:'ทั่วราชอาณาจักร');}
+function provList(){return PROVS.filter(function(p){return S.region==='all'||PROV_REGION[p]===S.region;});}
+function updPh(){var el=document.getElementById('f-prov');if(S.region==='all')el.placeholder='พิมพ์ค้นหาจังหวัด';else el.placeholder='ค้นหา '+provList().length+' จังหวัด';}
+/* number helpers */
+function unitFor(m,mx){if(m===0)return mx>=1e6?{d:1e6,u:'ล้านราย'}:{d:1e3,u:'พันราย'};return mx>=1e6?{d:1e6,u:'พันล้านบาท'}:{d:1e3,u:'ล้านบาท'};}
+function nf(x,d){return x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fv(x){return nf(x,Math.abs(x)>=10?1:2);}
+function pc(p){return (p>=0?'+':'−')+Math.abs(p).toFixed(1)+'%';}
+function yo(v,i){return (v[i]/v[i-1]-1)*100;}
+function flag(rw,i){return (rw.o>>i)&1;}
+function nice(r){var e=Math.pow(10,Math.floor(Math.log(r)/Math.LN10)),f=r/e;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;}
+function ticks(lo,hi,n){if(hi<=lo)hi=lo+1;var st=nice((hi-lo)/n),t=[],s=Math.floor(lo/st+1e-9)*st,e=Math.ceil(hi/st-1e-9)*st,x;for(x=s;x<=e+st/2;x+=st)t.push(+x.toFixed(10));t.st=st;return t;}
+function tk(x,st){return nf(x,st>=1?0:st>=.1?1:2);}
+function setT(id,t){document.getElementById(id).textContent=t;}
+
+function renderMain(){
+ var rw=AREA[areaKey()][S.m],V0=rw.v,U=unitFor(S.m,Math.max.apply(null,V0)),a=S.a,b=S.b,n=b-a,M=MET[S.m];
+ var V=V0.map(function(x){return x/U.d;}),P=V.slice(a,b+1),last=P[n],first=P[0],pk=0;
+ P.forEach(function(v,i){if(v>P[pk])pk=i;});
+ var cagr=n>0?(Math.pow(last/first,1/n)-1)*100:null,tot=n>0?(last/first-1)*100:null,nat=AREA.TH[S.m].v[b],share=V0[b]/nat*100;
+ setT('kl1',M.s+' พ.ศ. '+YRS[b]);setT('k1',fv(last));setT('k1s',U.u+' · '+areaName());
+ setT('kl2','เปลี่ยนแปลง '+YRS[a]+' → '+YRS[b]);setT('k2',tot===null?'–':pc(tot));setT('k2s',fv(first)+' → '+fv(last)+' '+U.u);
+ setT('k3',cagr===null?'–':pc(cagr));setT('k3s',n>0?n+' ปี':'ต้องเลือกอย่างน้อย 2 ปี');
+ setT('k4',fv(P[pk]));setT('k4s','พ.ศ. '+YRS[a+pk]+' · '+U.u);
+ setT('kl5','สัดส่วนต่อทั้งประเทศ พ.ศ. '+YRS[b]);setT('k5',nf(share,1)+'%');setT('k5s',areaName());
+ setT('t-line','แนวโน้ม'+M.s+': '+areaName()+' (หน่วย: '+U.u+')');
+ setT('t-bars','อัตราเปลี่ยนแปลง'+M.s+'จากปีก่อน: '+areaName());
+ setT('t-table','ตารางข้อมูล: '+M.s+' · '+areaName());
+ setT('th-v','ค่า ('+U.u+')');setT('th-d','เปลี่ยนแปลง ('+U.u+')');
+ /* line */
+ var W=720,H=300,ml=58,mr=30,mt=18,mb=34,lo=Math.min.apply(null,P),hi=Math.max.apply(null,P),pad=(hi-lo)*.12||hi*.1||1;
+ var T=ticks(Math.max(0,lo-pad)===0&&lo>=0&&lo-pad<0?0:lo-pad,hi+pad,5),y0=T[0],y1=T[T.length-1],st=T.st;
+ var X=function(i){return n?ml+i*(W-ml-mr)/n:(ml+W-mr)/2;},Y=function(v){return mt+(1-(v-y0)/(y1-y0))*(H-mt-mb);};
+ var g='',i,anyF=false;
+ T.forEach(function(t){g+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+Y(t).toFixed(1)+'" y2="'+Y(t).toFixed(1)+'" stroke="#E8EBEF"/><text x="'+(ml-8)+'" y="'+(Y(t)+4).toFixed(1)+'" text-anchor="end" font-size="12" fill="#3B4351">'+tk(t,st)+'</text>';});
+ P.forEach(function(v,i){g+='<text x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="12" fill="#3B4351">'+YRS[a+i]+'</text>';});
+ g+='<polyline fill="none" stroke="#2F5BD8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="'+P.map(function(v,i){return X(i).toFixed(1)+','+Y(v).toFixed(1);}).join(' ')+'"/>';
+ P.forEach(function(v,i){var gi=a+i,f=flag(rw,gi),cx=X(i).toFixed(1),cy=Y(v).toFixed(1),lab='พ.ศ. '+YRS[gi]+' '+fv(v)+' '+U.u+(f?' (ค่าผิดปกติ)':'');
+  if(f){anyF=true;g+='<path class="pt" data-i="'+i+'" tabindex="0" role="img" aria-label="'+lab+'" d="M'+cx+' '+(+cy-9)+'L'+(+cx+9)+' '+cy+'L'+cx+' '+(+cy+9)+'L'+(+cx-9)+' '+cy+'Z" fill="#fff" stroke="#B45309" stroke-width="2.5"/>';}
+  else g+='<circle class="pt" data-i="'+i+'" tabindex="0" role="img" aria-label="'+lab+'" cx="'+cx+'" cy="'+cy+'" r="5" fill="#fff" stroke="#2F5BD8" stroke-width="2.5"/>';});
+ if(n>0)g+='<text x="'+X(pk).toFixed(1)+'" y="'+(Y(P[pk])-14).toFixed(1)+'" text-anchor="middle" font-size="12" font-weight="500" fill="#111">สูงสุด '+fv(P[pk])+'</text>';
+ var line=document.getElementById('line');line.innerHTML=g;document.getElementById('lgd').hidden=!anyF;
+ var ro=document.getElementById('readout');
+ function show(i){var gi=a+i,tx='พ.ศ. '+YRS[gi]+' · '+fv(V[gi])+' '+U.u;if(gi>0)tx+=' · '+pc(yo(V0,gi))+' จากปีก่อน';if(flag(rw,gi))tx+=' · ◆ ค่าผิดปกติ';ro.textContent=tx;
+  [].forEach.call(line.querySelectorAll('.pt'),function(c){var on=+c.getAttribute('data-i')===i;c.style.transform=on?'scale(1.35)':'';c.style.transformOrigin='center';c.style.transformBox='fill-box';c.setAttribute('fill',on?(flag(rw,gi)?'#FDE9CC':'#2F5BD8'):'#fff');});}
+ [].forEach.call(line.querySelectorAll('.pt'),function(c){var k=+c.getAttribute('data-i');c.addEventListener('mouseenter',function(){show(k);});c.addEventListener('focus',function(){show(k);});});
+ line.onmouseleave=function(){show(n);};show(n);
+ /* yoy bars */
+ var H2=230,mt2=26,mb2=34,ps=[],s0=a===0?1:a;
+ for(i=s0;i<=b;i++)ps.push(yo(V0,i));
+ var plo=Math.min.apply(null,ps.concat([0])),phi=Math.max.apply(null,ps.concat([0])),T2=ticks(plo*1.1,phi*1.15||5,4),l2=T2[0],h2=T2[T2.length-1],Y2=function(v){return mt2+(1-(v-l2)/(h2-l2))*(H2-mt2-mb2);},b2='',bw=n>6?34:48;
+ var XB=function(gi){return n?ml+(gi-a)*(W-ml-mr)/n:(ml+W-mr)/2;};
+ T2.forEach(function(q){b2+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+Y2(q).toFixed(1)+'" y2="'+Y2(q).toFixed(1)+'" stroke="'+(q===0?'#8A93A1':'#E8EBEF')+'"/><text x="'+(ml-8)+'" y="'+(Y2(q)+4).toFixed(1)+'" text-anchor="end" font-size="12" fill="#3B4351">'+(q>0?'+':q<0?'−':'')+tk(Math.abs(q),T2.st)+'%</text>';});
+ for(i=s0;i<=b;i++){var p=yo(V0,i),pos=p>=0,tp=pos?Y2(p):Y2(0),h=Math.abs(Y2(p)-Y2(0)),f=flag(rw,i);
+  b2+='<rect x="'+(XB(i)-bw/2).toFixed(1)+'" y="'+tp.toFixed(1)+'" width="'+bw+'" height="'+Math.max(h,1).toFixed(1)+'" rx="2" fill="'+(pos?'#2F5BD8':'#B42318')+'"'+(f?' stroke="#111" stroke-width="2"':'')+'/>';
+  b2+='<text x="'+XB(i).toFixed(1)+'" y="'+(pos?tp-5:tp+h+14).toFixed(1)+'" text-anchor="middle" font-size="12" fill="#111">'+(f?'◆ ':'')+pc(p)+'</text>';
+  b2+='<text x="'+XB(i).toFixed(1)+'" y="'+(H2-10)+'" text-anchor="middle" font-size="12" fill="#3B4351">'+YRS[i]+'</text>';
+  b2+='<rect x="'+(XB(i)-bw/2-5).toFixed(1)+'" y="'+mt2+'" width="'+(bw+10)+'" height="'+(H2-mt2-mb2)+'" fill="transparent" data-tip="'+esc('พ.ศ. '+YRS[i]+'\nเปลี่ยนแปลง '+pc(p)+' จากปีก่อน\nค่า '+fv(V0[i]/U.d)+' '+U.u+' (ปีก่อน '+fv(V0[i-1]/U.d)+')'+(f?'\n◆ ติดธงค่าผิดปกติ':''))+'"/>';}
+ document.getElementById('bars').innerHTML=b2;
+ /* table */
+ var rows='';P.forEach(function(v,i){var gi=a+i,dv=gi?V[gi]-V[gi-1]:null;rows+='<tr><th scope="row">'+YRS[gi]+'</th><td>'+fv(v)+'</td><td>'+(gi?(dv>=0?'+':'−')+fv(Math.abs(dv)):'–')+'</td><td>'+(gi?pc(yo(V0,gi)):'–')+'</td><td>'+(flag(rw,gi)?'<span class="bd warn">◆ ผิดปกติ</span>':(gi===NY-1&&rw.rd&&S.m>0?'<span class="bd">ปัดเศษที่ต้นทาง</span>':''))+'</td></tr>';});
+ document.getElementById('tbody').innerHTML=rows;
+ setT('fstat','แสดง: '+areaName()+' · '+M.s+' · พ.ศ. '+YRS[a]+'–'+YRS[b]+' ('+(n+1)+' ปี)');
+}
+
+function renderRegions(){
+ var a=S.a,b=S.b,n=b-a,m=S.m,nat=AREA.TH[m].v,U=unitFor(m,nat[b]),act=S.prov?PROV_REGION[S.prov]:S.region;
+ var rs=REGIONS.map(function(r){var rw=AREA[r[2]][m];return {k:r[0],nm:r[1],v:rw.v[b],cg:n>0?(Math.pow(rw.v[b]/rw.v[a],1/n)-1)*100:null};}).sort(function(x,y){return y.v-x.v;});
+ var mx=rs[0].v,s='';
+ rs.forEach(function(r,i){var y=i*36+4,w=Math.max(2,r.v/mx*640),on=r.k===act;
+  s+='<text x="0" y="'+(y+20)+'" font-size="14" fill="#111"'+(on?' font-weight="500"':'')+'>'+r.nm.replace('ภาคตะวันออกเฉียงเหนือ','ภาคอีสาน')+'</text><rect x="150" y="'+(y+6)+'" width="'+w.toFixed(1)+'" height="20" rx="3" fill="'+(on?'#2F5BD8':'#9DB0E0')+'"/><text x="'+(150+w+10).toFixed(1)+'" y="'+(y+21)+'" font-size="13" fill="#111">'+fv(r.v/U.d)+' · '+nf(r.v/nat[b]*100,1)+'%'+(r.cg===null?'':' · CAGR '+pc(r.cg))+'</text><rect x="0" y="'+y+'" width="1000" height="34" fill="transparent" data-tip="'+esc(r.nm.replace('ภาคตะวันออกเฉียงเหนือ','ภาคอีสาน')+' พ.ศ. '+YRS[b]+'\n'+fv(r.v/U.d)+' '+U.u+' ('+nf(r.v/nat[b]*100,1)+'% ของทั้งประเทศ)'+(r.cg===null?'':'\nCAGR '+pc(r.cg)+' ช่วง '+YRS[a]+'–'+YRS[b]))+'"/>';});
+ document.getElementById('regsvg').innerHTML=s;
+ setT('t-reg','เปรียบเทียบรายภาค: '+MET[m].s+' พ.ศ. '+YRS[b]);
+ setT('d-reg','หน่วย: '+U.u+' · ตามด้วยสัดส่วนต่อทั้งประเทศ'+(n>0?' และ CAGR ช่วง '+YRS[a]+'–'+YRS[b]:'')+' · แท่งเข้ม = ภาคที่เลือกอยู่');
+}
+
+function renderProvs(){
+ var a=S.a,b=S.b,n=b-a,m=S.m,nat=AREA.TH[m].v[b],list=provList().map(function(p){var rw=AREA['P:'+p][m];return {p:p,v:rw.v[b],ch:n>0?(rw.v[b]/rw.v[a]-1)*100:null};}).sort(function(x,y){return y.v-x.v;}).slice(0,10);
+ var U=unitFor(m,list.length?list[0].v:1),h='';
+ var mxv=list.length?list[0].v:1;list.forEach(function(r,i){var w=Math.max(1.5,r.v/mxv*58);h+='<li data-tip="'+esc(r.p+' ('+RG_SHORT[PROV_REGION[r.p]]+')\nอันดับ '+(i+1)+' · '+fv(r.v/U.d)+' '+U.u+'\n'+nf(r.v/nat*100,1)+'% ของทั้งประเทศ'+(r.ch===null?'':'\nเปลี่ยนแปลง '+pc(r.ch)+' ช่วง '+YRS[a]+'–'+YRS[b]))+'"><span class="rk">'+(i+1)+'</span><span class="nm"><button type="button" class="lk" data-p="'+r.p+'">'+r.p+'</button><small>'+RG_SHORT[PROV_REGION[r.p]]+'</small></span><span class="tr"><i style="width:'+w.toFixed(1)+'%'+(r.p===S.prov?';background:#2F5BD8':'')+'"></i><b>'+fv(r.v/U.d)+' · '+nf(r.v/nat*100,1)+'%</b></span><span class="chg">'+(r.ch===null?'–':pc(r.ch))+'</span></li>';});
+ document.getElementById('pbars').innerHTML=h;
+ setT('t-prov','10 อันดับแรก'+(S.region==='all'?'ทั้งประเทศ':'ใน'+RG_SHORT[S.region])+': '+MET[m].s+' พ.ศ. '+YRS[b]);
+ setT('d-prov','คลิกชื่อจังหวัดเพื่อดูรายละเอียดของจังหวัดนั้นในส่วนที่ 1');
+ setT('th-pv','ค่า ('+U.u+') · สัดส่วนต่อประเทศ');setT('th-pc','เปลี่ยนแปลง '+YRS[a]+'→'+YRS[b]);
+}
+
+var RS={m:0,sort:'grp',view:'hm'};
+var RAT=[{n:'เบี้ยเฉลี่ยต่อกรมธรรม์',u:'บาท',d:0},{n:'ทุนประกันเฉลี่ยต่อกรมธรรม์',u:'บาท',d:0},{n:'เงินจ่ายต่อเบี้ยรับ',u:'%',d:1}];
+function ratV(ak,k,i){var A=AREA[ak];return k===0?A[2].v[i]*1000/A[0].v[i]:k===1?A[1].v[i]*1000/A[0].v[i]:A[3].v[i]/A[2].v[i]*100;}
+function lum(c){var q=c.map(function(v){v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*q[0]+.7152*q[1]+.0722*q[2];}
+function hmCol(t){var c0=[238,242,251],c1=[23,37,84],c=c0.map(function(v,i){return Math.round(v+(c1[i]-v)*t);}),L=lum(c),cw=1.05/(L+.05),cd=(L+.05)/(lum([17,17,17])+.05);return {bg:'rgb('+c.join(',')+')',fg:cw>cd?'#fff':'#111'};}
+function renderRatios(){
+ var k=RS.m,R=RAT[k],a=S.a,b=S.b,rows=[],act=areaKey(),i,hmv=RS.view==='hm';
+ var provs=provList().map(function(p){return {ak:'P:'+p,nm:p,rg:PROV_REGION[p],ind:1};});
+ var top=[{ak:'TH',nm:'ทั่วราชอาณาจักร',sum:1}];
+ if(RS.sort==='val'){
+  REGIONS.forEach(function(r){if(r[0]!=='bkk'&&(S.region==='all'||S.region===r[0]))top.push({ak:r[2],nm:r[1],sum:1});});
+  provs.sort(function(x,y){return ratV(y.ak,k,b)-ratV(x.ak,k,b);});provs.forEach(function(p){p.tag=RG_SHORT[p.rg];p.ind=0;});
+  rows=top.concat(provs);
+ }else{
+  rows=top;
+  REGIONS.forEach(function(r){if(S.region!=='all'&&S.region!==r[0])return;
+   if(r[0]==='bkk'){rows.push({ak:r[2],nm:r[1],ind:0});return;}
+   rows.push({ak:r[2],nm:r[1],sum:1});
+   provs.filter(function(p){return p.rg===r[0];}).sort(function(x,y){return x.nm.localeCompare(y.nm,'th');}).forEach(function(p){rows.push(p);});});
+ }
+ /* colour domain: percentile 5-95 of province cells */
+ var vals=[];provs.forEach(function(p){for(i=a;i<=b;i++)vals.push(ratV(p.ak,k,i));});
+ vals.sort(function(x,y){return x-y;});var lo=vals[Math.floor(vals.length*.05)],hi=vals[Math.min(vals.length-1,Math.ceil(vals.length*.95)-1)];if(!(hi>lo)){lo=vals[0];hi=vals[vals.length-1]+1e-9;}
+ var h='<tr><th scope="col" class="rn">พื้นที่</th>';for(i=a;i<=b;i++)h+='<th scope="col" >'+YRS[i]+'</th>';
+ document.getElementById('rhead').innerHTML=h+'</tr>';
+ var body='';
+ rows.forEach(function(r){var sel=r.ak===act;body+='<tr class="'+(r.sum?'sumrow ':'')+(sel?'sel':'')+'"><th scope="row" class="rn">'+(r.ind?'<span class="ind"></span>':'')+r.nm+(r.tag?' <small>'+r.tag+'</small>':'')+'</th>';
+  for(i=a;i<=b;i++){var v=ratV(r.ak,k,i),t=Math.max(0,Math.min(1,(v-lo)/(hi-lo))),c=hmCol(t);var vt=nf(v,R.d)+(k===2?'%':'');body+=(hmv?'<td style="background:'+c.bg+';color:'+c.fg+'" title="'+r.nm+' · พ.ศ. '+YRS[i]+' · '+vt+'"><span class="vh">'+vt+'</span>':'<td>'+vt)+'</td>';}
+  body+='</tr>';});
+ document.getElementById('rbody').innerHTML=body;document.getElementById('hm').className='hm'+(hmv?'':' flat');document.querySelector('.lgx').style.display=hmv?'':'none';
+ var fm=function(x){return nf(x,R.d)+(k===2?'%':'');};
+ setT('lg-lo',fm(lo));setT('lg-hi',fm(hi));
+ setT('t-ratio',(hmv?'Heatmap ':'ตารางข้อมูล ')+R.n+(R.u==='บาท'?' (บาท)':'')+' · พ.ศ. '+YRS[a]+'–'+YRS[b]);
+ setT('d-ratio',hmv?'สีเข้มตามค่ามาก ตัดสีที่เปอร์เซ็นไทล์ 5\u201395 ของจังหวัด (ค่าที่เกินแสดงเป็นสีสุดขั้ว ตัวเลขในช่องยังเป็นค่าจริง) · แถวที่ชื่อมีแถบสีน้ำเงินคือพื้นที่ที่เลือกอยู่ · ปี 2565 ยอดเงินบางรายการถูกปัดเศษที่ต้นทาง':'แถวที่ชื่อมีแถบสีน้ำเงินคือพื้นที่ที่เลือกอยู่ · ปี 2565 ยอดเงินบางรายการถูกปัดเศษที่ต้นทาง');
+ var sr=document.querySelector('#rbody tr.sel'),hm=document.getElementById('hm');if(sr)hm.scrollTop=Math.max(0,sr.offsetTop-document.getElementById('rhead').offsetHeight);else hm.scrollTop=0;
+}
+(function(){var m=document.getElementById('r-met'),so=document.getElementById('r-sort');
+ m.innerHTML=RAT.map(function(r,i){return '<option value="'+i+'">'+r.n+'</option>';}).join('');
+ m.addEventListener('change',function(){RS.m=+m.value;renderRatios();});[['v-hm','hm'],['v-tb','tb']].forEach(function(p){document.getElementById(p[0]).addEventListener('click',function(){RS.view=p[1];document.getElementById('v-hm').setAttribute('aria-pressed',p[1]==='hm');document.getElementById('v-tb').setAttribute('aria-pressed',p[1]==='tb');renderRatios();});});so.addEventListener('change',function(){RS.sort=so.value;renderRatios();});})();
+
+function dqHTML(){
+ var h='';DQ.dims.forEach(function(d){var ok=d[3]!=='ต้องปรับปรุง';h+='<tr><th scope="row">'+esc(d[0])+'</th><td>'+nf(d[1]*100,1)+'%</td><td>'+nf(d[2]*100,1)+'%</td><td><span class="bd '+(ok?'ok':'warn')+'">'+(ok?'✓ ':'! ')+esc(d[3])+'</span></td></tr>';});
+ var t=DQ.total;h+='<tr class="tot"><th scope="row">คะแนนรวม (เฉลี่ย 5 มิติ)</th><td>'+nf(t[0]*100,1)+'%</td><td>'+nf(t[1]*100,1)+'%</td><td><span class="bd ok">✓ '+esc(t[2])+'</span></td></tr>';
+ return '<h3>คะแนน 5 มิติ ก่อน–หลังทำความสะอาด</h3><p class="d" style="margin:0 0 10px">ตัวเลขจากชีต Quality_Check ในไฟล์ข้อมูล</p><div class="tw"><table><thead><tr><th scope="col">มิติ</th><th scope="col">ก่อนคลีน</th><th scope="col">หลังคลีน</th><th scope="col">ระดับหลังคลีน</th></tr></thead><tbody>'+h+'</tbody></table></div>'
+ +'<p class="d" style="margin:10px 0 0">คะแนนก่อนคลีนเฉลี่ยจากรายการที่วัดได้เท่านั้น จึงอาจสูงกว่าความเป็นจริงเล็กน้อย (ตามหมายเหตุในไฟล์)</p>'
+ +'<h3>สิ่งที่แก้แล้ว</h3><ul class="plain"><li>ลบแถวซ้ำ 4 แถว (332 → 328 แถว) ทำให้ผลรวมจังหวัดตรงกับยอดภาค</li><li>เติมป้ายภาค/จังหวัดที่ว่างจาก merge cell 576 ช่อง รวมภาคใต้ 7 จังหวัดที่ไม่มีป้ายภาค</li><li>ปี 2565 ยอดเงิน 250 แถวเป็นหน่วยบาท จึงหาร 1,000 ให้เป็นพันบาทเหมือนปีอื่น</li><li>ปัดค่าปี 2564 ที่มีทศนิยม 331 แถวเป็นจำนวนเต็ม</li><li>กระทบยอด ประเทศ = กรุงเทพฯ + 4 ภาค และภาค = ผลรวมจังหวัด ผ่านทุกจุด</li></ul>'
+ +'<h3>ข้อควรระวังเมื่อใช้ข้อมูล</h3><ul class="plain"><li>108 จุดมีการเปลี่ยนแปลงเกิน ±50% จากปีก่อน ติดธงและคงไว้ตามต้นทาง (แสดงเป็น ◆ ในกราฟ)</li><li>ยอดเงินปี 2565 ถูกปัดเศษที่ต้นทาง 38 จาก 246 ค่า</li><li>ข้อมูลล่าสุดคือ พ.ศ. 2565 ห่างจากปีปัจจุบัน (2569) 4 ปี เกินเกณฑ์ 2 ปีที่ไฟล์ตั้งไว้</li><li>มีเพียง 11 จุดเวลา ไม่พอตรวจฤดูกาล</li></ul>';}
+
+(function(){var tip=document.createElement('div');tip.className='gtip';tip.hidden=true;tip.setAttribute('role','tooltip');document.getElementById('dash').appendChild(tip);
+ function put(t,x,y){var L=esc(t).split('\n');tip.innerHTML='<b>'+L[0]+'</b>'+L.slice(1).map(function(l){return '<div>'+l+'</div>';}).join('');tip.hidden=false;var w=tip.offsetWidth,h=tip.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  tip.style.left=Math.max(6,Math.min(vw-w-6,x+14+w>vw-6?x-14-w:x+14))+'px';tip.style.top=Math.max(6,Math.min(vh-h-6,y-h-10<6?y+16:y-h-10))+'px';}
+ function raw(el){return el.getAttribute('data-tip');}
+ var d=document.getElementById('dash');
+ d.addEventListener('pointermove',function(e){var el=e.target.closest&&e.target.closest('[data-tip]');if(!el){tip.hidden=true;return;}put(raw(el).replace(/&#10;/g,'\n'),e.clientX,e.clientY);});
+ d.addEventListener('pointerleave',function(){tip.hidden=true;});d.addEventListener('scroll',function(){tip.hidden=true;});
+ d.addEventListener('focusin',function(e){var el=e.target.closest&&e.target.closest('[data-tip]');if(!el)return;var r=el.getBoundingClientRect();put(raw(el),r.left+Math.min(r.width,240)/2,r.top);});
+ d.addEventListener('focusout',function(){tip.hidden=true;});})();
+var TV={view:'ch'};
+function renderIdx(){
+ var tb=TV.view==='tb',box=document.getElementById('idxrows');
+ document.getElementById('idxwrap').hidden=tb;document.getElementById('tblwrap').hidden=!tb;
+ document.getElementById('tv-ch').setAttribute('aria-pressed',!tb);document.getElementById('tv-tb').setAttribute('aria-pressed',tb);
+ if(tb){setT('d-idx','');return;}
+ var a=S.a,b=S.b,m=S.m,n=b-a,i,act=S.prov?PROV_REGION[S.prov]:S.region,U=unitFor(m,AREA.TH[m].v[b]);
+ setT('t-table','ดัชนี'+MET[m].s+'รายภาค (พ.ศ. '+YRS[a]+' = 100)');
+ if(n<1){setT('d-idx','');box.innerHTML='<li class="spk-empty">เลือกอย่างน้อย 2 ปีเพื่อดูดัชนี</li>';setT('yr0','');setT('yr1','');return;}
+ var ser=REGIONS.map(function(r){var v=AREA[r[2]][m].v,pts=[];for(i=a;i<=b;i++)pts.push(v[i]/v[a]*100);return {k:r[0],nm:RG_SHORT[r[0]],v:v,pts:pts};}).sort(function(p,q){return q.pts[n]-p.pts[n];});
+ var lo=100,hi=100;ser.forEach(function(q){q.pts.forEach(function(x){if(x<lo)lo=x;if(x>hi)hi=x;});});
+ var W=260,H=48,pd=6,X=function(j){return 4+j/n*(W-8);},Y=function(v){return pd+(hi-v)/(hi-lo||1)*(H-2*pd);},h='';
+ ser.forEach(function(q){var on=q.k===act,col=on?'#2F5BD8':'#6B7C99',d='',ar='',j;
+  for(j=0;j<=n;j++)d+=(j?'L':'M')+X(j).toFixed(1)+' '+Y(q.pts[j]).toFixed(1);
+  ar=d+'L'+X(n).toFixed(1)+' '+Y(100).toFixed(1)+'L'+X(0).toFixed(1)+' '+Y(100).toFixed(1)+'Z';
+  var hit='';for(j=0;j<=n;j++){var tx=X(j),w=(W-8)/Math.max(n,1);
+   hit+='<g class="yp"><circle cx="'+tx.toFixed(1)+'" cy="'+Y(q.pts[j]).toFixed(1)+'" r="4" fill="#fff" stroke="'+col+'" stroke-width="2"/><rect x="'+(tx-w/2).toFixed(1)+'" y="0" width="'+w.toFixed(1)+'" height="'+H+'" fill="transparent" data-tip="'+esc(q.nm+' · พ.ศ. '+YRS[a+j]+'\nดัชนี '+nf(q.pts[j],1)+' (ปีเริ่มต้น = 100)\nค่าจริง '+fv(q.v[a+j]/U.d)+' '+U.u)+'"/></g>';}
+  h+='<li'+(on?' class="act"':'')+'><span class="nm">'+q.nm+'</span><svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><line x1="0" x2="'+W+'" y1="'+Y(100).toFixed(1)+'" y2="'+Y(100).toFixed(1)+'" stroke="#C4CAD3" stroke-dasharray="3 3"/><path d="'+ar+'" fill="'+col+'" opacity=".10"/><path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+(on?2.6:2)+'" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(n).toFixed(1)+'" cy="'+Y(q.pts[n]).toFixed(1)+'" r="3.6" fill="'+col+'"/>'+hit+'</svg><span class="ix"><b>'+Math.round(q.pts[n])+'</b><small>'+pc(q.pts[n]-100)+'</small></span></li>';});
+ box.innerHTML=h;setT('yr0',YRS[a]);setT('yr1',YRS[b]);
+ box.setAttribute('aria-label','ดัชนีรายภาค ปี '+YRS[b]+': '+ser.map(function(q){return q.nm+' '+Math.round(q.pts[n]);}).join(', '));
+ setT('d-idx','เทียบกับ พ.ศ. '+YRS[a]+' เป็น 100 · ทุกแถวใช้สเกลเดียวกัน เส้นประ = ระดับปีเริ่มต้น · ภาคที่เลือกอยู่เป็นสีน้ำเงิน · ชี้เมาส์ที่เส้นเพื่อดูค่ารายปี');
+}
+[['tv-ch','ch'],['tv-tb','tb']].forEach(function(q){document.getElementById(q[0]).addEventListener('click',function(){TV.view=q[1];renderMain();renderIdx();});});
+function renderAll(){updPh();renderMain();renderIdx();renderRegions();renderProvs();renderRatios();}
+
+/* ---- filters ---- */
+var fMet,fA,fB,fReg,fProv;
+function setProv(name,fromRank){S.prov=name;if(name){S.region=PROV_REGION[name];}fReg.value=S.region;fProv.value=S.prov;renderAll();
+ if(fromRank){var t=document.getElementById('sec1');dash.scrollTop=Math.max(0,t.offsetTop-150);}}
+(function filters(){
+ fMet=document.getElementById('f-metric');fA=document.getElementById('f-from');fB=document.getElementById('f-to');fReg=document.getElementById('f-region');fProv=document.getElementById('f-prov');
+ fMet.innerHTML=MET.map(function(m,i){return '<option value="'+i+'" title="'+m.n+'">'+m.s+'</option>';}).join('');fMet.value=S.m;
+ var o=YRS.map(function(y,i){return '<option value="'+i+'">'+y+'</option>';}).join('');fA.innerHTML=o;fB.innerHTML=o;fA.value=0;fB.value=NY-1;
+ fReg.innerHTML='<option value="all">ทุกภาค</option>'+REGIONS.map(function(r){return '<option value="'+r[0]+'">'+r[1]+'</option>';}).join('');
+ function sync(){S.a=+fA.value;S.b=+fB.value;S.m=+fMet.value;
+  [].forEach.call(fB.options,function(op){op.disabled=+op.value<S.a;});[].forEach.call(fA.options,function(op){op.disabled=+op.value>S.b;});renderAll();}
+ fMet.addEventListener('change',sync);fA.addEventListener('change',sync);fB.addEventListener('change',sync);
+ fReg.addEventListener('change',function(){S.region=fReg.value;if(S.prov&&S.region!=='all'&&PROV_REGION[S.prov]!==S.region){S.prov='';fProv.value='';}fProv.dispatchEvent(new Event('rebuild'));sync();});
+ document.getElementById('f-reset').addEventListener('click',function(){fMet.value=2;fA.value=0;fB.value=NY-1;fReg.value='all';S.region='all';S.prov='';fProv.value='';fProv.dispatchEvent(new Event('rebuild'));sync();});
+ document.getElementById('pbars').addEventListener('click',function(e){var bt=e.target.closest('.lk');if(bt)setProv(bt.getAttribute('data-p'),true);});
+})();
+(function provBox(){
+ var inp=fProv,ul=document.getElementById('prov-list'),opts=[],act=-1;
+ function norm(t){return t.replace(/\s+/g,'').replace(/^จังหวัด/,'').replace(/^จ\./,'');}
+ function build(q){q=norm(q);opts=[];if(!q)opts.push({v:'',l:'ทุกจังหวัด'});
+  provList().forEach(function(p){if(!q||p.indexOf(q)>-1)opts.push({v:p,l:p});});
+  ul.textContent='';
+  opts.forEach(function(o,i){var li=document.createElement('li');li.id='po-'+i;li.setAttribute('role','option');li.setAttribute('data-i',i);var nm=document.createElement('span');nm.className='nm';nm.textContent=o.l;li.appendChild(nm);
+   if(o.v&&S.region==='all'){var rg=document.createElement('span');rg.className='rg';rg.textContent=RG_SHORT[PROV_REGION[o.v]];li.appendChild(rg);}
+   li.setAttribute('aria-selected',o.v===S.prov?'true':'false');ul.appendChild(li);});
+  if(!opts.length){var e=document.createElement('li');e.className='empty';e.setAttribute('role','presentation');e.textContent='ไม่พบจังหวัดที่ตรงกับ “'+inp.value.trim()+'”'+(S.region==='all'?'':' ใน'+RG_SHORT[S.region]);ul.appendChild(e);}
+  act=-1;inp.removeAttribute('aria-activedescendant');}
+ function open(){ul.hidden=false;inp.setAttribute('aria-expanded','true');}
+ function close(){ul.hidden=true;inp.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant');act=-1;}
+ function setAct(i){var L=ul.querySelectorAll('[role=option]');if(!L.length)return;if(i<0)i=L.length-1;if(i>=L.length)i=0;act=i;
+  [].forEach.call(L,function(li,k){li.classList.toggle('act',k===i);});inp.setAttribute('aria-activedescendant','po-'+i);L[i].scrollIntoView({block:'nearest'});}
+ function choose(i){var o=opts[i];if(!o)return;close();setProv(o.v,false);}
+ inp.addEventListener('focus',function(){build('');open();});
+ inp.addEventListener('rebuild',function(){build(ul.hidden?'':inp.value);});
+ inp.addEventListener('click',function(){if(ul.hidden){build('');open();}});
+ inp.addEventListener('input',function(){build(inp.value);open();if(opts.length&&inp.value.trim())setAct(0);if(!inp.value.trim()&&S.prov){S.prov='';renderAll();}});
+ inp.addEventListener('keydown',function(e){
+  if(e.key==='ArrowDown'){e.preventDefault();if(ul.hidden){build(inp.value);open();}setAct(act+1);}
+  else if(e.key==='ArrowUp'){e.preventDefault();if(ul.hidden){build(inp.value);open();}setAct(act<0?-1:act-1);}
+  else if(e.key==='Enter'){if(!ul.hidden&&act>=0){e.preventDefault();choose(act);}}
+  else if(e.key==='Escape'){if(!ul.hidden){e.stopPropagation();e.preventDefault();inp.value=S.prov;close();}}
+  else if(e.key==='Tab'){close();}});
+ ul.addEventListener('mousedown',function(e){e.preventDefault();var li=e.target.closest('[role=option]');if(li)choose(+li.getAttribute('data-i'));});
+ inp.addEventListener('blur',function(){inp.value=S.prov;close();});
+})();
+renderAll();
+
+/* ---- icon tools: dictionary / log / removed / CSV ---- */
+var DOC={"meta":[["ชื่อชุดข้อมูล","สถิติการรับประกันชีวิต จำแนกตามภาคและจังหวัด พ.ศ. 2555 – 2565"],["แหล่งที่มา","สำนักงานคณะกรรมการกำกับและส่งเสริมการประกอบธุรกิจประกันภัย (คปภ.) กระทรวงการคลัง (ตามหมายเหตุท้ายตารางในไฟล์ต้นฉบับ)"],["ไฟล์ต้นฉบับ","aac99385-data.xlsx (ชีต \"ข้อมูล\" → เก็บไว้เป็น Raw_Data ไม่แก้ไขค่าดิบ)"],["ช่วงเวลา","พ.ศ. 2555 – 2565 (ค.ศ. 2012 – 2022) รายปี"],["หน่วย","จำนวนกรมธรรม์ = ราย ; ทุนประกัน / เบี้ยรับ / เงินจ่ายตามกรมธรรม์ = พันบาท (ปี 2565 ต้นฉบับเป็นบาท แปลงเป็นพันบาทแล้ว)"],["ระดับรายละเอียด (Grain)","Cleaned_Data: 1 แถว = 1 หน่วยพื้นที่ × 1 ชนิดข้อมูล (ปีอยู่ในคอลัมน์) ; Cleaned_Long: 1 แถว = 1 หน่วยพื้นที่ × 1 ชนิดข้อมูล × 1 ปี"],["Primary Key","Cleaned_Data: Key = Province|Metric_Code ; Cleaned_Long: Key = Province|Metric_Code|Year_BE"],["จำนวนแถว","ดิบ 332 แถวข้อมูล → สะอาด 328 แถว"],["คำเตือนการใช้งาน","เมื่อรวมยอดให้กรอง Level = \"จังหวัด\" (รวมกรุงเทพฯ แล้วเท่ากับยอดประเทศ) หรือใช้ Level = \"ประเทศ\" โดยตรง ห้ามบวก Level ต่างกันเข้าด้วยกัน"]],"metrics":[["จำนวนกรมธรรม์ที่มีผลบังคับเมื่อสิ้นปี (ราย)","POLICY_CNT","ราย","จำนวนกรมธรรม์ประกันชีวิตที่ยังมีผลบังคับ ณ สิ้นปี","Stock (ยอดคงค้างสิ้นปี)"],["จำนวนเงินเอาประกันที่มีผลบังคับเมื่อสิ้นปี (พันบาท)","SUM_ASSURED","พันบาท","ทุนประกันรวมของกรมธรรม์ที่มีผลบังคับ ณ สิ้นปี","Stock (ยอดคงค้างสิ้นปี)"],["เบี้ยประกันภัยรับทั้งสิ้น (พันบาท)","PREMIUM","พันบาท","เบี้ยประกันที่บริษัทรับได้ตลอดปี","Flow (ตลอดปี)"],["เงินที่จ่ายตามกรมธรรม์ (พันบาท)","CLAIM_PAID","พันบาท","เงินที่บริษัทจ่ายให้ผู้เอาประกันตามกรมธรรม์ตลอดปี","Flow (ตลอดปี)"]],"fields":[["Cleaned_Data","Region","ภาคตามการจัดกลุ่มของต้นทาง","Text","ทั่วราชอาณาจักร / กรุงเทพมหานคร / ภาคกลาง / ภาคเหนือ / ภาคตะวันออกเฉียงเหนือ / ภาคใต้"],["Cleaned_Data","Province","ชื่อหน่วยพื้นที่ (จังหวัด หรือแถวรวมประเทศ/ภาค)","Text","77 จังหวัด + \"ทั่วราชอาณาจักร\" + 4 ชื่อภาค"],["Cleaned_Data","Level","ระดับของแถว ใช้กันการนับซ้ำ","Text","ประเทศ / ภาค / จังหวัด (กทม. = จังหวัด)"],["Cleaned_Data","Metric_Code","รหัสชนิดข้อมูล","Text","POLICY_CNT / SUM_ASSURED / PREMIUM / CLAIM_PAID"],["Cleaned_Data","Metric_Name","ชื่อชนิดข้อมูลตามต้นทาง","Text","4 ค่า"],["Cleaned_Data","Unit","หน่วยของค่า","Text","ราย / พันบาท"],["Cleaned_Data","2555 … 2565","ค่าของแต่ละปี พ.ศ. (11 คอลัมน์) ; ปี 2565 แปลงเป็นพันบาทแล้ว","Integer","ราย หรือ พันบาท ตาม Unit ; ต้อง > 0"],["Cleaned_Data","Key","คีย์หลักของแถว","Text","Province|Metric_Code"],["Cleaned_Data","Dup_Count","จำนวนครั้งที่ Key ปรากฏ (ต้อง = 1)","Integer","1"],["Cleaned_Data","Outlier_Count","จำนวนปีที่ YoY เกินเกณฑ์ในแถวนั้น","Integer","0–10"],["Cleaned_Data","Ratio_2565_2564","ปี 2565 ÷ ปี 2564 (ตรวจหน่วย)","Decimal","ควรอยู่ราว 0.3–1.5"],["Cleaned_Data","Rounded_2565","ธงว่าค่าปี 2565 ถูกปัดเศษที่ต้นทาง","Text (Flag)","Y / N"],["Cleaned_Data","Raw_Row","เลขแถวต้นทางใน Raw_Data","Integer","5–336"],["Cleaned_Data","Dec_2564","ธงทศนิยมในปี 2564 หลังคลีน (ต้อง = 0)","Integer","0 / 1"],["Cleaned_Long","Long_ID","ลำดับแถว","Integer","1–3,608"],["Cleaned_Long","Region, Province, Level, Metric_Code, Metric_Name, Unit","คัดจาก Cleaned_Data","Text","เหมือน Cleaned_Data"],["Cleaned_Long","Year_BE / Year_CE","ปี พ.ศ. / ค.ศ.","Integer","2555–2565 / 2012–2022"],["Cleaned_Long","Value","ค่าของตัวชี้วัด","Integer","ตาม Unit"],["Cleaned_Long","YoY_Pct","อัตราเปลี่ยนแปลงจากปีก่อน (0.54 = +54%)","Decimal","≥ -1 ; ว่างในปีแรก"],["Cleaned_Long","Outlier_Flag","ธงค่าผิดปกติตามเกณฑ์ YoY","Text (Flag)","Y / N / N/A"],["Cleaned_Long","Key","คีย์หลักระดับปี","Text","Province|Metric_Code|Year_BE"]],"steps":[[1,"คัดลอกข้อมูลดิบไว้ ไม่แก้ค่า ยกเลิก merge เท่านั้น","Raw_Data","Home > Merge & Center > Unmerge Cells"],[2,"เติมภาค/จังหวัดลงทุกแถว","Raw_Data (คอลัมน์ O, P)","F5 > Special > Blanks หรือสูตร =IF(A5<>\"\",A5,O4)"],[3,"ตรวจแถวซ้ำบน Key จังหวัด|ชนิดข้อมูล","Raw_Data (คอลัมน์ Q, R)","COUNTIF สะสม แล้ว Filter > 1 (หรือ Data > Remove Duplicates)"],[4,"นำแถวซ้ำและแถวที่ไม่ใช่ข้อมูลออก บันทึกเหตุผล","Removed_Records","Delete Row"],[5,"สร้างข้อมูลสะอาด: ปัดจำนวนเต็ม, แปลงหน่วยปี 2565, สร้าง Level / Metric_Code / Key","Cleaned_Data","ROUND, IF, VLOOKUP, & (เชื่อมข้อความ)"],[6,"ตรวจ YoY และระบายสีค่าผิดปกติ (ไม่ลบ)","Outlier_Check","Conditional Formatting"],[7,"กระทบยอดประเทศ / ภาค / จังหวัด","Reconciliation","SUMIFS"],[8,"ประเมินคุณภาพ 5 มิติ ก่อน–หลัง","Quality_Check","COUNTIF, COUNTBLANK, COUNTA, AVERAGEIF"],[9,"แปลงเป็นตารางแนวยาวสำหรับ Pivot / Power BI","Cleaned_Long","Data > Get & Transform > Unpivot Columns"]],"log":[["IS-01","Consistency","สูง","ยอดเงินปี 2565 เป็นหน่วย \"บาท\" ขณะที่ปี 2555–2564 เป็น \"พันบาท\" (สูงกว่าปี 2564 ราว 1,000 เท่า)",250,"หาร 1,000 เฉพาะปี 2565 ของชนิดเงิน แล้วตรวจอัตราส่วนปี 2565/2564 อีกครั้ง","แก้ไขแล้ว"],["IS-02","Completeness","สูง","ภาคและจังหวัดเป็น merge cell มีค่าเฉพาะเซลล์บนสุด แถวที่เหลือว่าง ทำให้ Filter / Pivot ไม่ได้",576,"ยกเลิก merge แล้วเติมค่าลงมาทุกแถว","แก้ไขแล้ว"],["IS-03","Completeness","สูง","จังหวัดภาคใต้ 7 จังหวัด (สงขลา สตูล ตรัง พัทลุง ปัตตานี ยะลา นราธิวาส) ไม่มีป้ายภาค เพราะ merge ช่วงใหม่ (A309:A336) แยกจาก \"ภาคใต้\" (A277:A308) และเว้นว่าง",28,"เติมค่า \"ภาคใต้\" ลงมา แล้วยืนยันด้วยการกระทบยอดรายภาค","แก้ไขแล้ว"],["IS-04","Uniqueness","สูง","แถวซ้ำ 100% ที่สมุทรปราการ (ทุนประกัน), สุพรรณบุรี (ทุนประกัน), พะเยา (เบี้ยรับ), กำแพงเพชร (เบี้ยรับ) — มี 5 แถวแทนที่จะเป็น 4",4,"ลบแถวซ้ำ เก็บแถวแรก บันทึกใน Removed_Records","แก้ไขแล้ว"],["IS-05","Consistency","กลาง","ค่าปี 2564 มีทศนิยม เช่น จำนวนกรมธรรม์ 7,045,093.18 ราย (จำนวนนับต้องเป็นจำนวนเต็ม)",331,"ปัดเป็นจำนวนเต็ม","แก้ไขแล้ว (ควรยืนยันกับต้นทาง)"],["IS-06","Accuracy","กลาง","ยอดเงินปี 2565 บางแถว (ส่วนใหญ่ทุนประกัน ทั้งระดับประเทศ ภาค จังหวัด) ถูกปัดเศษที่ 3 หลักนัยสำคัญ เช่น 21,800,000,000,000 บาท — กระทบยอดกับผลรวมจังหวัดคลาดเคลื่อนได้ถึง ~0.2%",38,"คงค่าตามต้นทาง ติดธง Rounded_2565 = Y และตั้งเกณฑ์กระทบยอด 0.5%","คงไว้และติดธง"],["IS-07","Accuracy","กลาง","ค่า YoY เกิน ±50% กระจุกที่ทุนประกันปี 2563, เงินจ่ายตามกรมธรรม์ปี 2562, ทุนประกันปี 2560 (ประเทศ +153%, กทม. +269%), จำนวนกรมธรรม์ กทม. ปี 2563 และบึงกาฬ ปี 2556",108,"คงไว้ + ติดธง ไม่ลบ ไม่แทนที่ เพราะยอดจังหวัดรวมกันตรงกับยอดภาคและประเทศ (ไม่ใช่ความผิดพลาดรายเซลล์)","คงไว้และติดธง / ต้องติดตามกับเจ้าของข้อมูล"],["IS-08","Uniqueness","กลาง","ไม่มี Primary Key — ระบุแถวได้จากจังหวัด + ชนิดข้อมูลร่วมกันเท่านั้น",328,"สร้าง Key = Province|Metric_Code","แก้ไขแล้ว"],["IS-09","Consistency","กลาง","แถวระดับประเทศ ภาค และจังหวัดปะปนในคอลัมน์เดียว ถ้าสรุปรวมโดยไม่แยกระดับจะนับซ้ำ",20,"เพิ่มคอลัมน์ Level ให้กรองเฉพาะ \"จังหวัด\" ได้","แก้ไขแล้ว"],["IS-10","Consistency","ต่ำ","ชื่อชนิดข้อมูลมีหน่วยปนอยู่ในข้อความ (ราย / พันบาท) ใช้กรองและทำกราฟยาก",328,"แยกเป็น Metric_Code (รหัสสั้น) + Unit","แก้ไขแล้ว"],["IS-11","Consistency","ต่ำ","ปีเป็น พ.ศ. และเป็นรูปแบบ wide (11 คอลัมน์) ไม่เหมาะกับ Pivot / Power BI",3608,"เพิ่ม Cleaned_Long (แนวยาว) พร้อม Year_CE = พ.ศ. − 543","แก้ไขแล้ว"],["IS-12","Timeliness","กลาง","ข้อมูลล่าสุดคือปี 2565 (ค.ศ. 2022) ขณะที่ปัจจุบันคือปี 2569 — ล่าช้า 4 ปี เกินเกณฑ์ที่ตั้งไว้",4,"แก้ด้วยการคลีนไม่ได้ — ระบุข้อจำกัดในรายงาน และขอข้อมูลปี 2566+","ต้องติดตามกับเจ้าของข้อมูล"],["IS-13","Completeness","ต่ำ","มีชื่อตาราง บรรทัดหน่วย แถวว่าง และหมายเหตุแหล่งที่มา ปนอยู่กับข้อมูล",7,"นำออก เก็บเนื้อหาเป็น Metadata (Source, Unit, Title)","แก้ไขแล้ว"],["IS-14","Completeness","ต่ำ","ตรวจค่าว่าง/ข้อความในช่องตัวเลข ไม่พบ (ผ่านตั้งแต่ก่อนคลีน)",0,"ไม่ต้องจัดการ (ไม่ใช้ Impute)","ไม่พบปัญหา"],["IS-15","Consistency","ต่ำ","กรุงเทพมหานครเป็นทั้ง \"ภาค\" และ \"จังหวัด\" ในต้นทาง ; \"ภาคกลาง\" ของต้นทางรวมจังหวัดภาคตะวันออกและตะวันตก (เช่น ชลบุรี ราชบุรี) ต่างจากการแบ่งภาคแบบอื่น",4,"คงตามต้นทางและระบุในพจนานุกรมข้อมูล","คงไว้และติดธง"]],"rm":[["RM01",1,"Non-data row","ชื่อตารางอยู่ในแถวข้อมูล (ไม่ใช่ record)",null,null,"สถิติการรับประกันชีวิต จำแนกตามภาคและจังหวัด พ.ศ. 2555 - 2565"],["RM02",2,"Non-data row","บรรทัดระบุหน่วย \"หน่วย: พันบาท\"",null,null,"หน่วย: พันบาท"],["RM03",3,"Non-data row","แถวว่างระหว่างหัวตารางกับข้อมูล",null,null,null],["RM04",19,"Duplicate record","แถวซ้ำ 100% (จังหวัด+ชนิดข้อมูลเดียวกัน ค่าเท่ากันทุกปี) — เก็บแถวแรก ลบแถวซ้ำ (Data > Remove Duplicates)","ภาคกลาง","สมุทรปราการ","จำนวนเงินเอาประกันที่มีผลบังคับเมื่อสิ้นปี (พันบาท)"],["RM05",96,"Duplicate record","แถวซ้ำ 100% (จังหวัด+ชนิดข้อมูลเดียวกัน ค่าเท่ากันทุกปี) — เก็บแถวแรก ลบแถวซ้ำ (Data > Remove Duplicates)","ภาคกลาง","สุพรรณบุรี","จำนวนเงินเอาประกันที่มีผลบังคับเมื่อสิ้นปี (พันบาท)"],["RM06",150,"Duplicate record","แถวซ้ำ 100% (จังหวัด+ชนิดข้อมูลเดียวกัน ค่าเท่ากันทุกปี) — เก็บแถวแรก ลบแถวซ้ำ (Data > Remove Duplicates)","ภาคเหนือ","พะเยา","เบี้ยประกันภัยรับทั้งสิ้น (พันบาท)"],["RM07",171,"Duplicate record","แถวซ้ำ 100% (จังหวัด+ชนิดข้อมูลเดียวกัน ค่าเท่ากันทุกปี) — เก็บแถวแรก ลบแถวซ้ำ (Data > Remove Duplicates)","ภาคเหนือ","กำแพงเพชร","เบี้ยประกันภัยรับทั้งสิ้น (พันบาท)"],["RM08",337,"Non-data row","แถวว่างท้ายตาราง",null,null,null],["RM09",338,"Non-data row","แถวว่างท้ายตาราง",null,null,null],["RM10",339,"Non-data row","แถวว่างท้ายตาราง",null,null,null],["RM11",340,"Non-data row","หมายเหตุแหล่งที่มา (Footnote)",null,null,"ที่มา: สำนักงานคณะกรรมการกำกับและส่งเสริมการประกอบธุรกิจประกันภัย กระทรวงการคลัง"]],"rmsum":[["แถวซ้ำที่ลบ",4],["แถวที่ไม่ใช่ข้อมูลที่นำออก",7],["รวมทั้งหมด",11]],"rmnote":"หมายเหตุ: ไม่มีการลบ outlier — ค่าผิดปกติคงไว้และติดธง (ดู Outlier_Check) เพราะยอดจังหวัดรวมแล้วตรงกับยอดภาค/ประเทศ จึงเป็นค่าที่ต้นทางรายงานจริง"},drwFrom=null,drwT=0;
+function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function tbl(head,rows){return '<div class="tw"><table><thead><tr>'+head.map(function(h){return '<th scope="col">'+esc(h)+'</th>';}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c,i){return (i===0?'<th scope="row">':'<td>')+c+(i===0?'</th>':'</td>');}).join('')+'</tr>';}).join('')+'</tbody></table></div>';}
+function dictHTML(){var m=DOC.meta.map(function(r){return '<dt>'+esc(r[0])+'</dt><dd>'+esc(r[1])+'</dd>';}).join('');
+ return '<h3>ข้อมูลทั่วไป</h3><dl class="kv">'+m+'</dl>'
+ +'<h3>ชนิดข้อมูล</h3>'+tbl(['ชื่อตามต้นทาง','รหัส','หน่วย','ความหมาย','ประเภทค่า'],DOC.metrics.map(function(r){return r.map(esc);}))
+ +'<h3>ฟิลด์ในชุดข้อมูล</h3>'+tbl(['ชีต','ฟิลด์','คำอธิบาย','ชนิด','หน่วย / ค่าที่เป็นได้'],DOC.fields.map(function(r){return r.map(esc);}))
+ +'<h3>ขั้นตอนทำความสะอาด</h3><ol>'+DOC.steps.map(function(r){return '<li>'+esc(r[1])+' <span style="color:#555">('+esc(r[2])+' · '+esc(r[3])+')</span></li>';}).join('')+'</ol>';}
+function logHTML(){var rows=DOC.log.map(function(r){var wt=String(r[6]).indexOf('ต้องติดตาม')>-1||String(r[6]).indexOf('ควรยืนยัน')>-1;return [esc(r[0]),esc(r[1]),esc(r[2]),esc(r[3]),esc(r[4]),esc(r[5]),'<span class="bd '+(wt?'warn':'ok')+'">'+(wt?'! ':'✓ ')+esc(r[6])+'</span>'];});
+ return '<p class="d" style="margin:0 0 10px">ปัญหาที่พบ '+DOC.log.length+' รายการ จากชีต Cleaning_Log</p>'+tbl(['รหัส','มิติ','ความรุนแรง','ปัญหาที่พบ','จำนวนที่กระทบ','การดำเนินการ','สถานะ'],rows);}
+function rmHTML(){var rows=DOC.rm.map(function(r){return [esc(r[0]),esc(r[1]),esc(r[2]),esc(r[3]),esc(r[4]||'–'),esc(r[5]||'–'),esc(r[6]||'–')];});
+ return '<p class="d" style="margin:0 0 10px">'+DOC.rmsum.map(function(x){return esc(x[0])+' '+esc(x[1])+' แถว';}).join(' · ')+'</p>'+tbl(['รหัส','แถวต้นทาง','ประเภท','เหตุผล','ภาค','จังหวัด','เนื้อหาเดิม'],rows)+'<div class="note">'+esc(DOC.rmnote)+'</div>';}
+function openDrw(title,html,from){clearTimeout(drwT);drwFrom=from;var d=document.getElementById('drw');setT('drw-t',title);document.getElementById('drw-b').innerHTML=html;document.getElementById('drw-b').scrollTop=0;
+ document.getElementById('scrim').hidden=false;d.hidden=false;void d.offsetWidth;d.classList.add('on');document.getElementById('scrim').classList.add('on');document.getElementById('drw-x').focus();}
+function closeDrw(quick){var d=document.getElementById('drw');if(d.hidden)return;d.classList.remove('on');document.getElementById('scrim').classList.remove('on');
+ drwT=setTimeout(function(){d.hidden=true;document.getElementById('scrim').hidden=true;},quick?0:260);if(!quick&&drwFrom)drwFrom.focus();}
+function csvDownload(){var rw=AREA[areaKey()][S.m],u=S.m===0?'ราย':'พันบาท',L=[['พ.ศ.','พื้นที่','ตัวชี้วัด','หน่วย','ค่า','เปลี่ยนแปลงจากปีก่อน (%)','ติดธงผิดปกติ']],i;
+ for(i=S.a;i<=S.b;i++)L.push([YRS[i],areaName(),MET[S.m].n,u,rw.v[i],i?(yo(rw.v,i)).toFixed(2):'',flag(rw,i)?'Y':'N']);
+ var csv='﻿'+L.map(function(r){return r.map(function(c){c=String(c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',');}).join('\r\n');
+ var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='life-insurance-stats.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);}
+function findHTML(){return "<p class=\"d\" style=\"font-size:13px;color:#555;margin:0 0 12px\">เขียนจากข้อมูลระดับทั้งประเทศและรายภาคช่วงเต็ม พ.ศ. 2555–2565 ไม่เปลี่ยนตามตัวกรอง</p><div class=\"find find1\">\n<div class=\"card\"><h3>เบี้ยรับโตเร็วแล้วชะลอ และกรุงเทพฯ หดตัว</h3><dl>\n<dt>สิ่งที่เห็น</dt><dd>เบี้ยรับทั้งประเทศโตเฉลี่ยราว 9.5% ต่อปีช่วง 2555–2560 แต่เหลือราว 0.3% ช่วง 2560–2565 ช่วงหลังกรุงเทพฯ ลดเฉลี่ย 2.2% ต่อปี ขณะที่ภาคอื่นโต 1.6–2.9%</dd>\n<dt>หมายความว่า</dt><dd>กรุงเทพฯ มีสัดส่วนราว 42.5% ของเบี้ยรับปี 2565 จึงฉุดตัวเลขรวมไว้มาก ข้อมูลชุดนี้ไม่ได้บอกสาเหตุ</dd>\n<dt>ควรทำต่อ</dt><dd>เปรียบเทียบกับ GDP และเงินเฟ้อ และดูต่อว่าที่ลดลงในกรุงเทพฯ มาจากผลิตภัณฑ์หรือช่องทางขายใด</dd></dl></div>\n<div class=\"card\"><h3>จำนวนกรมธรรม์ปี 2563 พุ่งแล้วดิ่ง</h3><dl>\n<dt>สิ่งที่เห็น</dt><dd>ทั้งประเทศเพิ่มจาก 28.8 เป็น 40.8 ล้านราย (+41.8%) แล้วกลับลงเหลือ 27.2 ล้านรายปี 2564 (−33.4%) ทั้งสองปีต่ำกว่าเกณฑ์ ±50% จึงไม่ถูกติดธง</dd>\n<dt>หมายความว่า</dt><dd>การพุ่งแล้วดิ่งในปีเดียวมักมาจากการนับหรือนิยามที่เปลี่ยน มากกว่ากรมธรรม์เพิ่มขึ้นจริง ซึ่งยังเป็นข้อสันนิษฐาน</dd>\n<dt>ควรทำต่อ</dt><dd>ถามยืนยันกับ คปภ. ก่อนใช้ตัวเลขปีนี้ตีความหรืออ้างอิง</dd></dl></div>\n<div class=\"card\"><h3>ทุนประกันปี 2560 กระโดด</h3><dl>\n<dt>สิ่งที่เห็น</dt><dd>ทั้งประเทศจาก 12.84 เป็น 32.46 ล้านล้านบาท (+152.8%) กรุงเทพฯ เพิ่ม 268.7% แล้วลดลง 39.4% ในปี 2561</dd>\n<dt>หมายความว่า</dt><dd>ทั้งประเทศและกรุงเทพฯ กระโดดในปีเดียวกัน ไฟล์ข้อมูลจึงคงค่าไว้และติดธง ไม่ได้แก้ไข</dd>\n<dt>ควรทำต่อ</dt><dd>ยืนยันสาเหตุกับต้นทาง และระวังเมื่อเทียบทุนประกันข้ามปีรอบนี้</dd></dl></div>\n<div class=\"card\"><h3>เงินจ่ายตามกรมธรรม์ปี 2565 ลดลงครึ่งหนึ่ง</h3><dl>\n<dt>สิ่งที่เห็น</dt><dd>จาก 457.7 เหลือ 247.0 พันล้านบาท (−46.0%) และตัวเลขปี 2565 เป็นเลขกลม แสดงว่าต้นทางปัดเศษ</dd>\n<dt>หมายความว่า</dt><dd>ข้อมูลไม่พอบอกว่าเป็นการลดลงจริง หรือเป็นผลจากการปัดเศษและวิธีรายงานของปีนั้น</dd>\n<dt>ควรทำต่อ</dt><dd>ขอตัวเลขปี 2565 ฉบับละเอียดจาก คปภ. ก่อนสรุปว่าจ่ายสินไหมลดลงจริง</dd></dl></div></div>";}
+var REFTAB='dict',REFS=['find','dict','quality'],REFN={find:'ข้อค้นพบและสิ่งที่ควรทำต่อ',dict:'พจนานุกรมข้อมูล',quality:'คุณภาพข้อมูล'};
+function refHTML(t){return '<div class="tabs" role="tablist" aria-label="หัวข้อ">'+REFS.map(function(k){return '<button type="button" role="tab" id="tb-'+k+'" aria-controls="tp-ref" aria-selected="'+(t===k)+'" tabindex="'+(t===k?0:-1)+'">'+REFN[k]+'</button>';}).join('')+'</div><div id="tp-ref" role="tabpanel" aria-labelledby="tb-'+t+'">'+(t==='find'?findHTML():t==='dict'?dictHTML():dqHTML())+'</div>';}
+function openRef(t,from){REFTAB=t;openDrw('ข้อค้นพบ พจนานุกรม และคุณภาพข้อมูล',refHTML(t),from);}
+function setRefTab(t,focus){REFTAB=t;var b=document.getElementById('drw-b');b.innerHTML=refHTML(t);b.scrollTop=0;if(focus)document.getElementById('tb-'+t).focus();}
+document.getElementById('drw-b').addEventListener('click',function(e){var tb=e.target.closest('[role=tab]');if(tb){var t=tb.id.replace('tb-','');if(t!==REFTAB)setRefTab(t,true);}});
+document.getElementById('drw-b').addEventListener('keydown',function(e){var tb=e.target.closest&&e.target.closest('[role=tab]');if(!tb)return;var i=REFS.indexOf(REFTAB),n=null;if(e.key==='ArrowRight')n=REFS[(i+1)%3];else if(e.key==='ArrowLeft')n=REFS[(i+2)%3];else if(e.key==='Home')n=REFS[0];else if(e.key==='End')n=REFS[2];if(n){e.preventDefault();setRefTab(n,true);}});
+document.getElementById('ib-dict').addEventListener('click',function(){openRef('dict',this);});
+document.getElementById('ib-log').addEventListener('click',function(){openDrw('บันทึกการทำความสะอาดข้อมูล',logHTML(),this);});
+document.getElementById('ib-rm').addEventListener('click',function(){openDrw('แถวที่นำออกจากข้อมูลดิบ',rmHTML(),this);});
+
+document.getElementById('drw-x').addEventListener('click',function(){closeDrw();});
+document.getElementById('scrim').addEventListener('click',function(){closeDrw();});
+document.getElementById('drw').addEventListener('keydown',function(e){if(e.key!=='Tab')return;var f=[].filter.call(this.querySelectorAll('button,[tabindex="0"]'),function(x){return !x.disabled;}),a=f[0],z=f[f.length-1];
+ if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}});
+
+/* ---- export: CSV / Excel / PDF ---- */
+var MCODE=['POLICY_CNT','SUM_ASSURED','PREMIUM','CLAIM_PAID'];
+function pop(x){var c=0;while(x){c+=x&1;x>>=1;}return c;}
+function filteredRows(){var rw=AREA[areaKey()][S.m],u=S.m===0?'ราย':'พันบาท',L=[['พ.ศ.','พื้นที่','ตัวชี้วัด','หน่วย','ค่า','เปลี่ยนแปลงจากปีก่อน (%)','ติดธงผิดปกติ']],i;
+ for(i=S.a;i<=S.b;i++)L.push([YRS[i],areaName(),MET[S.m].n,u,rw.v[i],i?+yo(rw.v,i).toFixed(2):'',flag(rw,i)?'Y':'N']);return L;}
+function allRows(){var L=[['พื้นที่','ภาค','ระดับ','รหัสตัวชี้วัด','ตัวชี้วัด','หน่วย'].concat(YRS.map(String),['จำนวนปีที่ติดธงผิดปกติ'])];
+ DATA.R.forEach(function(r){var k=r[0],nm,rg,lv;if(k==='TH'){nm=rg='ทั่วราชอาณาจักร';lv='ประเทศ';}else if(k.charAt(0)==='R'){nm=rg=k.slice(2);lv='ภาค';}else{nm=k.slice(2);rg=regInfo(PROV_REGION[nm])[1];lv='จังหวัด';}
+  L.push([nm,rg,lv,MCODE[r[1]],MET[r[1]].n,r[1]===0?'ราย':'พันบาท'].concat(r[2],[pop(r[3])]));});return L;}
+function csvText(L){return '﻿'+L.map(function(r){return r.map(function(c){c=String(c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',');}).join('\r\n');}
+function saveBlob(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);toast('ดาวน์โหลด '+name+' แล้ว');}
+var toastT=0;function toast(t){var e=document.getElementById('toast');e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){e.hidden=true;},2800);}
+/* minimal xlsx writer (zip, stored) */
+var CRC=(function(){var t=[],c,n,k;for(n=0;n<256;n++){c=n;for(k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(b){var c=0xFFFFFFFF,i;for(i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function u16(n){return [n&255,(n>>8)&255];}function u32(n){return [n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];}
+function zipBlob(files){var enc=new TextEncoder(),parts=[],cd=[],off=0;
+ files.forEach(function(f){var nm=enc.encode(f.name),d=enc.encode(f.text),crc=crc32(d),sz=d.length;
+  var lh=new Uint8Array([].concat(u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(sz),u32(sz),u16(nm.length),u16(0)));
+  parts.push(lh,nm,d);
+  cd.push(new Uint8Array([].concat(u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(sz),u32(sz),u16(nm.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off))),nm);
+  off+=lh.length+nm.length+sz;});
+ var cds=0;cd.forEach(function(x){cds+=x.length;});
+ var end=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cds),u32(off),u16(0)));
+ return new Blob(parts.concat(cd,[end]),{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});}
+function colL(n){var s='';n++;while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+function xe(t){return String(t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function sheetXML(rows,widths,plain){var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>'+widths.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';}).join('')+'</cols><sheetData>';
+ rows.forEach(function(r,ri){x+='<row r="'+(ri+1)+'">';r.forEach(function(c,ci){if(c===null||c===undefined||c==='')return;var ref=colL(ci)+(ri+1);
+  if(typeof c==='number'){var st=plain.indexOf(ci)>-1?'':(c%1===0?' s="2"':' s="3"');x+='<c r="'+ref+'"'+st+'><v>'+c+'</v></c>';}
+  else x+='<c r="'+ref+'" t="inlineStr"'+(ri===0?' s="1"':'')+'><is><t xml:space="preserve">'+xe(c)+'</t></is></c>';});x+='</row>';});
+ return x+'</sheetData></worksheet>';}
+function xlsxBlob(){var NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',names=['ตามตัวกรอง','ข้อมูลทั้งหมด','หมายเหตุ'];
+ var fr=filteredRows(),al=allRows(),notes=[['หมายเหตุ'],['ข้อมูล: ชีต Cleaned_Data ในไฟล์ Insurance_Data_Cleaning_Simple0.xlsx (แหล่งต้นทางตามที่ไฟล์ระบุ: คปภ. กระทรวงการคลัง)'],['หน่วยเดิม: จำนวนกรมธรรม์ = ราย ; ทุนประกัน / เบี้ยรับ / เงินจ่ายตามกรมธรรม์ = พันบาท'],['ปี 2565 ยอดเงินบางรายการถูกปัดเศษที่ต้นทาง'],['ค่าผิดปกติ (เปลี่ยนแปลงจากปีก่อนเกิน ±50%) คงไว้ตามต้นทางและติดธง ไม่ได้ลบ'],['เมื่อรวมยอดให้กรองระดับ (ประเทศ / ภาค / จังหวัด) ก่อน ห้ามบวกต่างระดับเข้าด้วยกัน'],['ส่งออกเมื่อ: '+new Date().toISOString().slice(0,10)]];
+ var w1=[10,24,34,10,18,22,14],w2=[24,24,10,16,40,10].concat(YRS.map(function(){return 16;}),[18]);
+ var files=[
+ {name:'[Content_Types].xml',text:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+ {name:'_rels/.rels',text:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+ {name:'xl/workbook.xml',text:H+'<workbook xmlns="'+NS+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+names.map(function(n,i){return '<sheet name="'+n+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</sheets></workbook>'},
+ {name:'xl/_rels/workbook.xml.rels',text:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+[1,2,3].map(function(i){return '<Relationship Id="rId'+i+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+i+'.xml"/>';}).join('')+'<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
+ {name:'xl/styles.xml',text:H+'<styleSheet xmlns="'+NS+'"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'},
+ {name:'xl/worksheets/sheet1.xml',text:sheetXML(fr,w1,[0])},
+ {name:'xl/worksheets/sheet2.xml',text:sheetXML(al,w2,[])},
+ {name:'xl/worksheets/sheet3.xml',text:sheetXML(notes,[110],[])}];
+ return zipBlob(files);}
+/* menu */
+(function(){var b=document.getElementById('ib-dl'),m=document.getElementById('dlm');
+ function items(){return [].slice.call(m.querySelectorAll('button'));}
+ function open(){m.hidden=false;b.setAttribute('aria-expanded','true');items()[0].focus();}
+ function close(ret){m.hidden=true;b.setAttribute('aria-expanded','false');if(ret)b.focus();}
+ b.addEventListener('click',function(){if(m.hidden)open();else close(true);});
+ document.addEventListener('mousedown',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b&&!b.contains(e.target))close(false);});
+ m.addEventListener('keydown',function(e){var L=items(),i=L.indexOf(document.activeElement);
+  if(e.key==='ArrowDown'){e.preventDefault();L[(i+1)%L.length].focus();}else if(e.key==='ArrowUp'){e.preventDefault();L[(i-1+L.length)%L.length].focus();}
+  else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(true);}else if(e.key==='Tab'){close(false);}});
+ document.getElementById('x-csv').addEventListener('click',function(){close(true);saveBlob(new Blob([csvText(filteredRows())],{type:'text/csv;charset=utf-8'}),'life-insurance-filtered.csv');});
+ document.getElementById('x-csva').addEventListener('click',function(){close(true);saveBlob(new Blob([csvText(allRows())],{type:'text/csv;charset=utf-8'}),'life-insurance-all.csv');});
+ document.getElementById('x-xlsx').addEventListener('click',function(){close(true);saveBlob(xlsxBlob(),'life-insurance-stats.xlsx');});
+ document.getElementById('x-pdf').addEventListener('click',function(){close(false);closeDrw(true);toast('เลือก "บันทึกเป็น PDF" ในหน้าต่างพิมพ์');setTimeout(function(){window.print();},250);});
+})();
+
+var busy=false,lastEl=null,hideT=0,TARGET={d1:null,d2:null,d3:null};
+var dash=document.getElementById('dash'),dback=document.getElementById('dash-back');
+function openDash(from,id){
+ lastEl=from||null;clearTimeout(hideT);dash.hidden=false;void dash.offsetWidth;
+ dash.classList.add('on');document.documentElement.classList.add('dash-open');
+ var tg=id&&document.getElementById(id);dash.scrollTop=tg?Math.max(0,tg.offsetTop-76):0;
+ dash.focus({preventScroll:true});
+}
+function closeDash(){closeDrw(true);
+ dash.classList.remove('on');document.documentElement.classList.remove('leaving','dash-open');
+ hideT=setTimeout(function(){dash.hidden=true;},300);busy=false;
+ if(lastEl&&lastEl.focus)lastEl.focus({preventScroll:true});
+ setTimeout(rewind,reduce?0:160);
+}
+var animating=false;
+function rewind(){
+ var from=prog();
+ if(reduce||from<.02){window.scrollTo(0,0);if(!reduce)render(prog());return;}
+ animating=true;document.documentElement.classList.add('rewinding');
+ var t0=performance.now(),dur=1700*Math.max(.55,from);
+ (function step(now){var q=cl((now-t0)/dur);render(from*(1-ez(q)));
+  if(q<1){requestAnimationFrame(step);return;}
+  window.scrollTo(0,0);animating=false;document.documentElement.classList.remove('rewinding');render(prog());
+ })(t0);
+}
+dback.addEventListener('click',closeDash);
+document.addEventListener('keydown',function(e){if(e.key!=='Escape'||dash.hidden)return;if(!document.getElementById('drw').hidden)closeDrw();else closeDash();});
+docs.forEach(function(el){el.addEventListener('click',function(e){
+ if(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1)return;
+ e.preventDefault();if(busy)return;busy=true;
+ var r=el.getBoundingClientRect(),w=document.createElement('div');
+ w.className='wipe show';w.style.left=r.left+'px';w.style.top=r.top+'px';w.style.width=r.width+'px';w.style.height=r.height+'px';
+ w.innerHTML='<div class="wipe-in"><div class="spin"></div><p>กำลังเปิดแดชบอร์ด…</p></div>';
+ document.body.appendChild(w);document.documentElement.classList.add('leaving');
+ void w.offsetWidth;
+ w.style.left='0';w.style.top='0';w.style.width='100vw';w.style.height='100vh';w.style.borderRadius='0';
+ setTimeout(function(){openDash(el,TARGET[el.id]);if(el.id==='d2')openRef('find',document.getElementById('ib-dict'));if(el.id==='d3')openRef('quality',document.getElementById('ib-dict'));setTimeout(function(){w.remove();},350);},reduce?0:760);
+});});
+document.getElementById('skip').addEventListener('click',function(e){
+ e.preventDefault();if(busy)return;busy=true;document.documentElement.classList.add('leaving');openDash(this);
+});
+fit();
+if(reduce){track.style.height='100vh';render(1);}
+else{render(prog());window.addEventListener('scroll',function(){if(raf||animating)return;raf=requestAnimationFrame(function(){raf=0;render(prog());});},{passive:true});}
+window.addEventListener('resize',function(){fit();if(!animating)render(reduce?1:prog());});
+})();
+</script>
+</body>
+</html>
